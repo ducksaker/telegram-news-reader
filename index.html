@@ -1,19 +1,21 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="classic-dark" data-style="terminal">
+<html lang="vi" data-theme="terminal-dark" data-style="terminal">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Telegram &amp; X News Reader</title>
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src https://r.jina.ai https://api.fxtwitter.com https://api.rss2json.com https://proxy.corsfix.com https://translate.googleapis.com http://127.0.0.1:8787; base-uri 'none'; form-action 'none'">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234ea1ff'/%3E%3Cpath d='M7 16l17-7-4 15-5-4-3 3v-5z' fill='%23fff'/%3E%3C/svg%3E">
 <script>
 /* Áp theme trước khi paint để không nháy màu. */
 try {
   var s0 = JSON.parse(localStorage.getItem('tgnews.settings.v1') || '{}') || {};
-  var themeIds = ['classic-dark', 'classic-light', 'terminal-dark', 'terminal-light', 'dracula', 'nord'];
-  var t0 = s0.theme === 'light' ? 'classic-light' : s0.theme === 'dark' ? 'classic-dark' : s0.theme;
-  document.documentElement.dataset.theme = themeIds.indexOf(t0) === -1 ? 'classic-dark' : t0;
+  var themeIds = ['terminal-dark', 'terminal-amber', 'terminal-cyan', 'classic-dark'];
+  var themeMap = { 'classic-light': 'terminal-dark', 'terminal-light': 'terminal-dark', dracula: 'terminal-amber', nord: 'terminal-cyan', dark: 'terminal-dark', light: 'terminal-dark' };
+  var t0 = themeMap[s0.theme] || s0.theme;
+  document.documentElement.dataset.theme = themeIds.indexOf(t0) === -1 ? 'terminal-dark' : t0;
+  document.documentElement.dataset.crt = s0.crt === true ? 'on' : 'off';
   document.documentElement.lang = s0.lang === 'en' ? 'en' : 'vi';
 } catch (e) { /* ignore */ }
 </script>
@@ -42,23 +44,6 @@ try {
   --shadow: 0 18px 40px rgba(0, 0, 0, .35);
   --radius: 14px;
 }
-html[data-theme="classic-light"] {
-  color-scheme: light;
-  --bg: #f3f6fa;
-  --bg-soft: #eef2f8;
-  --card: #ffffff;
-  --card-2: #f7f9fd;
-  --line: #d9e2ee;
-  --fg: #0e1a27;
-  --muted: #586a7e;
-  --accent: #0b6fd6;
-  --accent-ink: #ffffff;
-  --ok: #0f8a5f;
-  --warn: #a46a00;
-  --danger: #c02626;
-  --shadow: 0 12px 30px rgba(20, 40, 70, .10);
-  --radius: 14px;
-}
 html[data-theme="terminal-dark"] {
   color-scheme: dark;
   --font-ui: var(--font-mono);
@@ -77,57 +62,41 @@ html[data-theme="terminal-dark"] {
   --shadow: 0 0 0 1px rgba(57, 255, 136, .10), 0 18px 44px rgba(0, 0, 0, .55);
   --radius: 4px;
 }
-html[data-theme="terminal-light"] {
-  color-scheme: light;
+html[data-theme="terminal-amber"] {
+  color-scheme: dark;
   --font-ui: var(--font-mono);
-  --bg: #f4f7f2;
-  --bg-soft: #eaf1ea;
-  --card: #ffffff;
-  --card-2: #f6faf6;
-  --line: #c9d8cf;
-  --fg: #10231a;
-  --muted: #5b7065;
-  --accent: #0a7a46;
-  --accent-ink: #ffffff;
-  --ok: #0a7a46;
-  --warn: #8a5a00;
-  --danger: #b42318;
-  --shadow: 0 0 0 1px rgba(10, 122, 70, .10), 0 14px 34px rgba(16, 35, 26, .12);
+  --bg: #0f0b05;
+  --bg-soft: #141007;
+  --card: #1a1206;
+  --card-2: #221808;
+  --line: #3d2c0d;
+  --fg: #ffe6b8;
+  --muted: #b08d52;
+  --accent: #ffb000;
+  --accent-ink: #1a1000;
+  --ok: #ffd166;
+  --warn: #ffc04d;
+  --danger: #ff6b6b;
+  --shadow: 0 0 0 1px rgba(255, 176, 0, .12), 0 18px 44px rgba(0, 0, 0, .55);
   --radius: 4px;
 }
-html[data-theme="dracula"] {
+html[data-theme="terminal-cyan"] {
   color-scheme: dark;
-  --bg: #282a36;
-  --bg-soft: #21222c;
-  --card: #2a2c3a;
-  --card-2: #343746;
-  --line: #44475a;
-  --fg: #f8f8f2;
-  --muted: #9aa4c7;
-  --accent: #bd93f9;
-  --accent-ink: #1a1025;
-  --ok: #50fa7b;
-  --warn: #f1fa8c;
-  --danger: #ff5555;
-  --shadow: 0 18px 44px rgba(0, 0, 0, .42);
-  --radius: 12px;
-}
-html[data-theme="nord"] {
-  color-scheme: dark;
-  --bg: #2e3440;
-  --bg-soft: #272c36;
-  --card: #333a47;
-  --card-2: #3b4252;
-  --line: #434c5e;
-  --fg: #eceff4;
-  --muted: #94a3b8;
-  --accent: #88c0d0;
-  --accent-ink: #102026;
-  --ok: #a3be8c;
-  --warn: #ebcb8b;
-  --danger: #bf616a;
-  --shadow: 0 18px 44px rgba(0, 0, 0, .38);
-  --radius: 12px;
+  --font-ui: var(--font-mono);
+  --bg: #061014;
+  --bg-soft: #08161c;
+  --card: #0a1b22;
+  --card-2: #0d222b;
+  --line: #16414d;
+  --fg: #d6f6ff;
+  --muted: #6fa6b3;
+  --accent: #5ee7ff;
+  --accent-ink: #00161c;
+  --ok: #5ee7ff;
+  --warn: #ffd166;
+  --danger: #ff6b6b;
+  --shadow: 0 0 0 1px rgba(94, 231, 255, .12), 0 18px 44px rgba(0, 0, 0, .55);
+  --radius: 4px;
 }
 /* Mọi theme dùng chung ngôn ngữ terminal; chỉ khác bảng màu. */
 html[data-style="terminal"] {
@@ -155,10 +124,16 @@ html[data-theme="terminal-dark"] body {
     radial-gradient(800px 400px at 100% 0%, rgba(94, 241, 255, .04), transparent 55%),
     var(--bg);
 }
-html[data-theme="terminal-light"] body {
+html[data-theme="terminal-amber"] body {
   background:
-    repeating-linear-gradient(0deg, rgba(10, 122, 70, .035) 0 1px, transparent 1px 4px),
-    radial-gradient(1000px 520px at 50% -12%, rgba(10, 122, 70, .07), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255, 176, 0, .03) 0 1px, transparent 1px 4px),
+    radial-gradient(1000px 520px at 50% -12%, rgba(255, 176, 0, .10), transparent 60%),
+    var(--bg);
+}
+html[data-theme="terminal-cyan"] body {
+  background:
+    repeating-linear-gradient(0deg, rgba(94, 231, 255, .03) 0 1px, transparent 1px 4px),
+    radial-gradient(1000px 520px at 50% -12%, rgba(94, 231, 255, .10), transparent 60%),
     var(--bg);
 }
 a { color: var(--accent); text-decoration: none; }
@@ -785,6 +760,15 @@ html[data-style="terminal"] ::selection { background: color-mix(in srgb, var(--a
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+/* CRT scanline overlay (opt-in) */
+.crt-row { display: flex; align-items: center; gap: 8px; padding: 0 12px 12px; font-size: 12px; color: var(--muted); cursor: pointer; }
+.crt-row input { accent-color: var(--accent); width: 14px; height: 14px; }
+html[data-crt="on"] body::after {
+  content: "";
+  position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,.22) 3px);
+  opacity: .55;
+}
 </style>
 </head>
 <body>
@@ -824,6 +808,10 @@ html[data-style="terminal"] ::selection { background: color-mix(in srgb, var(--a
     <button id="themeClose" class="iconbtn" type="button" title="Đóng" aria-label="Đóng">×</button>
   </div>
   <div id="themeGrid" class="theme-grid"></div>
+  <label class="crt-row" for="optCrt">
+    <input type="checkbox" id="optCrt">
+    <span data-i18n="Hiệu ứng CRT (scanline)">Hiệu ứng CRT (scanline)</span>
+  </label>
 </div>
 
 <div id="chTransferBackdrop" class="theme-backdrop" hidden></div>
@@ -1014,21 +1002,20 @@ html[data-style="terminal"] ::selection { background: color-mix(in srgb, var(--a
     interval: 5,
     translate: true,
     view: 'channels',
-    theme: 'classic-dark',
+    theme: 'terminal-dark',
     lang: 'vi',
     source: 'telegram',
     fontSize: 14,
     frameWidth: 1120,
+    crt: false,
   };
   const FONT_SIZES = [13, 14, 15, 16, 18, 20];
   const FRAME_WIDTHS = [860, 1120, 1440, 0]; // 0 = toàn màn hình
   const THEMES = [
-    { id: 'classic-dark', name: 'Terminal Blue Dark', dark: true, bg: '#0b0f14', card: '#121a24', fg: '#e9eff7', accent: '#4ea1ff' },
-    { id: 'classic-light', name: 'Terminal Blue Light', dark: false, bg: '#f3f6fa', card: '#ffffff', fg: '#0e1a27', accent: '#0b6fd6' },
-    { id: 'terminal-dark', name: 'Terminal Green Dark', dark: true, bg: '#050807', card: '#0a1411', fg: '#d7ffe1', accent: '#39ff88' },
-    { id: 'terminal-light', name: 'Terminal Green Light', dark: false, bg: '#f4f7f2', card: '#ffffff', fg: '#10231a', accent: '#0a7a46' },
-    { id: 'dracula', name: 'Terminal Purple', dark: true, bg: '#282a36', card: '#2a2c3a', fg: '#f8f8f2', accent: '#bd93f9' },
-    { id: 'nord', name: 'Terminal Frost', dark: true, bg: '#2e3440', card: '#333a47', fg: '#eceff4', accent: '#88c0d0' },
+    { id: 'terminal-dark', name: 'Terminal Green', dark: true, bg: '#050807', card: '#0a1411', fg: '#d7ffe1', accent: '#39ff88' },
+    { id: 'terminal-amber', name: 'Terminal Amber', dark: true, bg: '#0f0b05', card: '#1a1206', fg: '#ffe6b8', accent: '#ffb000' },
+    { id: 'terminal-cyan', name: 'Terminal Cyan', dark: true, bg: '#061014', card: '#0a1b22', fg: '#d6f6ff', accent: '#5ee7ff' },
+    { id: 'classic-dark', name: 'Terminal Blue', dark: true, bg: '#0b0f14', card: '#121a24', fg: '#e9eff7', accent: '#4ea1ff' },
   ];
 
   const $ = (sel) => document.querySelector(sel);
@@ -1106,6 +1093,7 @@ html[data-style="terminal"] ::selection { background: color-mix(in srgb, var(--a
     'Toàn màn hình': 'Full width',
     'Giao diện': 'Theme',
     'Chọn giao diện': 'Choose a theme',
+    'Hiệu ứng CRT (scanline)': 'CRT effect (scanline)',
     'Tối': 'Dark',
     'Sáng': 'Light',
     'Tìm kiếm trong tin': 'Search posts',
@@ -1241,9 +1229,10 @@ html[data-style="terminal"] ::selection { background: color-mix(in srgb, var(--a
   if (![1, 5, 10, 15, 30].includes(Number(settings.interval))) settings.interval = 5;
   if (!['channels', 'timeline'].includes(settings.view)) settings.view = 'channels';
   if (!['vi', 'en'].includes(settings.lang)) settings.lang = 'vi';
-  if (settings.theme === 'dark') settings.theme = 'classic-dark';
-  else if (settings.theme === 'light') settings.theme = 'classic-light';
-  if (!THEMES.some((t) => t.id === settings.theme)) settings.theme = 'classic-dark';
+  const THEME_MIGRATIONS = { 'classic-light': 'terminal-dark', 'terminal-light': 'terminal-dark', dracula: 'terminal-amber', nord: 'terminal-cyan', dark: 'terminal-dark', light: 'terminal-dark' };
+  if (THEME_MIGRATIONS[settings.theme]) settings.theme = THEME_MIGRATIONS[settings.theme];
+  if (!THEMES.some((t) => t.id === settings.theme)) settings.theme = 'terminal-dark';
+  if (typeof settings.crt !== 'boolean') settings.crt = false;
   if (!['telegram', 'twitter'].includes(settings.source)) settings.source = 'telegram';
   if (!FONT_SIZES.includes(Number(settings.fontSize))) settings.fontSize = 14;
   if (!FRAME_WIDTHS.includes(Number(settings.frameWidth))) settings.frameWidth = 1120;
@@ -3633,9 +3622,16 @@ html[data-style="terminal"] ::selection { background: color-mix(in srgb, var(--a
     btn.setAttribute('aria-expanded', $('#themePanel') && !$('#themePanel').hidden ? 'true' : 'false');
   }
 
+  function applyCrt() {
+    document.documentElement.dataset.crt = state.settings.crt ? 'on' : 'off';
+    const opt = $('#optCrt');
+    if (opt) opt.checked = !!state.settings.crt;
+  }
+
   function applyTheme() {
     const theme = currentTheme();
     document.documentElement.dataset.theme = theme.id;
+    applyCrt();
     updateThemeBtn();
     renderThemePanel();
   }
@@ -4090,6 +4086,12 @@ html[data-style="terminal"] ::selection { background: color-mix(in srgb, var(--a
       saveSettings();
       applyTheme();
       closeThemePanel();
+    });
+    const optCrt = $('#optCrt');
+    if (optCrt) optCrt.addEventListener('change', () => {
+      state.settings.crt = !!optCrt.checked;
+      saveSettings();
+      applyCrt();
     });
     document.addEventListener('keydown', (ev) => {
       if (ev.key === 'Escape' && !$('#themePanel').hidden) {

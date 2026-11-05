@@ -51,7 +51,8 @@ FxTwitter không có SLA — có thể rate-limit hoặc đổi API; app cũng t
 4. Chọn/bỏ chọn từng kênh bằng checkbox trên chip (hoặc **Chọn tất cả / Bỏ chọn tất cả**).
 5. Chọn số tin (10/20/30/50), bật auto-refresh, bật dịch, chọn kiểu xem, chỉnh **cỡ chữ bài viết** và
    **chiều rộng khung tin**, gõ tìm kiếm.
-6. Bấm nút **palette** ở góc phải để chọn bảng màu terminal (6 bảng: Blue/Green × Dark/Light, Purple, Frost).
+6. Bấm nút **palette** ở góc phải để chọn bảng màu terminal (4 bảng dark: Green mặc định, Amber, Cyan, Blue)
+   và bật/tắt hiệu ứng CRT (scanline).
 7. Nếu gặp 403/429, chạy `start-python.cmd` (tuỳ chọn) để app dùng proxy local khi Jina lỗi.
 8. Bấm **Xuất / nhập** trong “Kênh đã lưu” để sao lưu hoặc chuyển danh sách kênh bằng chuỗi.
 9. Bấm **Lưu TXT** cạnh **Làm mới** để lưu N tin mới nhất mỗi kênh ra file `.txt` (chỉ thời gian + nội dung; chọn nơi lưu nếu trình duyệt hỗ trợ).
@@ -106,9 +107,10 @@ FxTwitter không có SLA — có thể rate-limit hoặc đổi API; app cũng t
 - **Cờ quốc gia**: Windows (Segoe UI Emoji) không vẽ regional indicator nên `🇯🇴` bị hiện thành “JO”.
   App thay mỗi cặp bằng ảnh SVG Twemoji (`cdn.jsdelivr.net`, chỉ URL, lazy-load) để cờ hiển thị đúng,
   áp dụng cho cả nội dung gốc, bản dịch, tiêu đề link và tên chuyển tiếp.
-- **6 bảng màu terminal**: Terminal Blue Dark/Light, Terminal Green Dark/Light, Terminal Purple, Terminal
-  Frost; tất cả dùng chung một ngôn ngữ terminal (mono, nhãn uppercase, prompt `$`/`>`, con trỏ nhấp nháy,
-  góc vuông), chỉ khác bảng màu; nội dung bài vẫn dùng font sans. Panel chọn có swatch, lưu lựa chọn.
+- **4 bảng màu terminal dark**: Terminal Green (mặc định), Terminal Amber, Terminal Cyan, Terminal Blue;
+  tất cả dùng chung một ngôn ngữ terminal (mono, nhãn uppercase, prompt `$`/`>`, con trỏ nhấp nháy,
+  góc vuông), chỉ khác bảng màu; nội dung bài vẫn dùng font sans. Panel chọn có swatch, lưu lựa chọn,
+  kèm toggle **hiệu ứng CRT (scanline)** mặc định tắt.
   Link mở bài gốc trên Telegram.
 
 ## Hiệu năng
@@ -162,13 +164,13 @@ gửi chuỗi đi đâu; chuỗi chỉ nằm trong ô soạn/clipboard và khôn
   động → tìm kiếm full-width. Select có mũi tên riêng, checkbox thành switch; terminal dùng toggle
   **ON/OFF** vuông 62×24. Nút có icon; mobile 2 cột, topbar gọn, form thêm kênh 2 hàng. Nút **Làm mới**
   giữ icon khi đổi ngôn ngữ hoặc đang tải.
-- 6 bảng màu terminal: **Terminal Blue Dark**, **Terminal Blue Light**, **Terminal Green Dark**,
-  **Terminal Green Light**, **Terminal Purple**, **Terminal Frost**.
+- 4 bảng màu terminal dark: **Terminal Green** (mặc định), **Terminal Amber**, **Terminal Cyan**,
+  **Terminal Blue**.
 - Nút **palette** ở topbar mở panel swatch; chọn theme áp dụng ngay, lưu vào `tgnews.settings.v1`;
   `Esc` hoặc bấm ra ngoài để đóng, focus trả về nút palette.
 - **Toàn bộ theme dùng chung ngôn ngữ terminal**: font mono cho UI/nhãn/meta, nhãn uppercase, góc vuông,
-  prompt `$`/`>`, con trỏ nhấp nháy, scanline; **nội dung bài vẫn dùng font sans** để đọc dài. Các theme
-  chỉ khác bảng màu — không còn Classic/Dracula/Nord kiểu cũ.
+  prompt `$`/`>`, con trỏ nhấp nháy; **hiệu ứng scanline CRT là tuỳ chọn, mặc định tắt**; **nội dung bài
+  vẫn dùng font sans** để đọc dài. Các theme chỉ khác bảng màu.
 - Ảnh chụp dùng computed style nên theo đúng theme, font và cỡ chữ đang chọn.
 
 ## Dịch sang tiếng Việt
@@ -298,10 +300,11 @@ Xoá toàn bộ dữ liệu: DevTools → Application → Local Storage → xoá
   `writeText` bị chặn → `execCommand` fallback vẫn chép đúng; cả hai lỗi → label **Lỗi**.
 - Cỡ chữ & chiều rộng: 20 px → `--read-size: 20px` và `.post-text` 20 px; Rộng 1440 → `main.maxWidth`
   1440 px; Toàn màn hình (0) → `100%`; reload giữ 18 px / Hẹp 860.
-- Giao diện: panel có 6 bảng màu terminal + swatch, active có check; **tất cả** dùng UI mono, nhãn
-  uppercase, prompt `$`/`>`, cursor, góc vuông; nội dung bài vẫn sans; Terminal Blue/Green/Purple/Frost
-  đổi đúng palette. Đóng panel bằng backdrop/Esc, focus trả về nút palette. Reload giữ lựa chọn;
-  `dark`/`light` cũ migrate sang `classic-*` (ID nội bộ giữ nguyên). Ảnh chụp dưới theme tối giữ màu
+- Giao diện: panel có 4 bảng màu terminal dark + swatch, active có check; **tất cả** dùng UI mono, nhãn
+  uppercase, prompt `$`/`>`, cursor, góc vuông; nội dung bài vẫn sans; Terminal Green/Amber/Cyan/Blue
+  đổi đúng palette. Toggle CRT (scanline) mặc định tắt, bật/tắt lưu vào settings. Đóng panel bằng
+  backdrop/Esc, focus trả về nút palette. Reload giữ lựa chọn; theme cũ (`classic-light`,
+  `terminal-light`, `dracula`, `nord`) migrate sang palette terminal tương ứng. Ảnh chụp dưới theme tối giữ màu
   terminal, bỏ badge/Bản gốc.
 - Terminal switches: **tất cả theme** hiển thị toggle **ON/OFF** 62×24, thumb vuông, accent glow; bật/tắt
   không đổi bố cục.
