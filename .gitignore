@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Local tooling / host attachments
+.reasonix/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
