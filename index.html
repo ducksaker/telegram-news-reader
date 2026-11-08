@@ -243,6 +243,12 @@ select { cursor: pointer; }
 .ch-hint { margin: 8px 2px 0; font-size: 11.5px; color: var(--muted); }
 .chip.off { opacity: .52; filter: saturate(.35); }
 .chip.off .chip-text b { text-decoration: line-through; text-decoration-thickness: 1px; }
+/* Kênh ngoài phạm vi tag đang lọc: vẫn bấm được nhưng mờ để thấy rõ tập đang dùng. */
+.chip.scope-out { opacity: .3; filter: saturate(.15); }
+.ch-scope { margin-left: 8px; padding: 1px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600;
+  color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, transparent); vertical-align: middle; }
+.ch-scope[hidden] { display: none; }
 .chip-check {
   width: 19px; height: 19px; flex: 0 0 19px; padding: 0; border-radius: 6px;
   border: 1.5px solid color-mix(in srgb, var(--c) 70%, var(--line));
@@ -268,6 +274,13 @@ select { cursor: pointer; }
   background: transparent; color: var(--muted); cursor: pointer; font-size: 15px;
 }
 .chip-x:hover { background: rgba(255, 122, 122, .16); color: var(--danger); }
+.chip-tag {
+  height: 20px; min-width: 20px; flex: 0 0 auto; padding: 0 4px; border-radius: 5px;
+  border: 1px solid transparent; background: transparent; color: var(--muted);
+  font: inherit; font-size: 10.5px; line-height: 1; cursor: pointer;
+}
+.chip-tag:hover { border-color: var(--line); color: var(--accent); background: var(--card); }
+.chip-tag.on { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 
 /* ---------- toolbar ---------- */
 .toolbar { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
@@ -646,6 +659,87 @@ body.lb-open { overflow: hidden; }
 .shotbtn svg, .copybtn svg { flex: 0 0 auto; }
 .shotbtn[aria-busy="true"], .copybtn[aria-busy="true"] { opacity: .65; cursor: progress; }
 
+/* Nhóm "Chụp hình ▾": nút chính + nút chọn cỡ, dính liền như một control. */
+.shot-group { display: inline-flex; align-items: center; white-space: nowrap; }
+.shot-more { display: inline-flex; align-items: center; justify-content: center; padding: 1px 2px 1px 4px; margin-left: 1px; border-radius: 4px; color: var(--muted); }
+.shot-more svg { display: block; }
+.shot-more:hover, .shot-more:focus-visible, .shot-more[aria-expanded="true"] { color: var(--accent); text-decoration: none; }
+.shot-more:focus-visible { outline: 1px dashed var(--accent); outline-offset: 1px; }
+
+/* Popup chọn cỡ ảnh: position fixed (JS đặt toạ độ) để không bị .post cắt. */
+.shot-menu { position: fixed; z-index: 70; min-width: 300px; margin: 0; padding: 0;
+  background: var(--card); color: var(--fg);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); font-family: var(--font-mono); }
+.shot-menu[hidden] { display: none; }
+.shot-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 6px 8px 6px 10px; border-bottom: 1px solid var(--line); }
+.shot-menu-head b { font-size: 11.5px; letter-spacing: .03em; color: var(--muted); text-transform: uppercase; }
+.shot-menu-status { flex: 1 1 auto; min-width: 0; font-size: 10.5px; color: var(--ok);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shot-menu-list { max-height: min(58vh, 520px); overflow: auto; overscroll-behavior: contain; padding: 4px; }
+.shot-menu-group { position: sticky; top: 0; z-index: 1; padding: 5px 7px 3px; margin: 0 0 1px;
+  background: var(--card); color: var(--muted); font-size: 10.5px; letter-spacing: .04em;
+  border-bottom: 1px solid var(--line); }
+.shot-menu-group:not(:first-child) { margin-top: 4px; }
+.shot-menu-item { display: flex; align-items: center; gap: 7px; width: 100%; padding: 5px 7px;
+  border: 0; border-radius: max(2px, calc(var(--radius) - 4px)); background: none;
+  color: var(--fg); font: inherit; font-size: 12px; line-height: 1.5; text-align: left; cursor: pointer; }
+.shot-menu-item:hover, .shot-menu-item:focus-visible { background: var(--card-2); color: var(--accent); outline: none; }
+.shot-menu-item .tick { flex: 0 0 12px; color: var(--accent); font-size: 11px; }
+.shot-menu-item .sn { flex: 1 1 auto; white-space: nowrap; }
+.shot-menu-item .px { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.shot-menu-item[aria-checked="true"] .sn, .shot-menu-item[aria-checked="true"] .px { color: var(--accent); }
+
+/* ---------- tag: dải lọc trên feed, popover gắn tag, panel quản lý ---------- */
+.tagbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 9px 12px; margin: 10px 0 0; }
+.tagbar[hidden] { display: none; }
+.tagbar-title { color: var(--muted); font-family: var(--font-mono); font-size: 13px; flex: 0 0 auto; }
+.tag-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 auto; min-width: 0; }
+.tag-chip { --t: var(--accent); display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--t) 32%, var(--line)); background: var(--card-2); color: var(--fg); font: inherit;
+  font-size: 11.5px; line-height: 1.5; cursor: pointer; white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+.tag-chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--t); flex: 0 0 6px; }
+.tag-chip:hover { border-color: var(--t); color: var(--accent); }
+.tag-chip.on { border-color: var(--t); border-width: 2px; font-weight: 600;
+  background: color-mix(in srgb, var(--t) 42%, var(--card-2)); color: var(--fg); }
+.tag-chip .tag-n { font-size: 10.5px; opacity: .75; }
+.tag-chip.on .tag-n { opacity: .85; }
+.tag-chip.all { border-style: dashed; }
+
+.tag-menu { position: fixed; z-index: 72; width: 252px; padding: 8px; margin: 0;
+  background: var(--card); color: var(--fg); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow); }
+.tag-menu[hidden] { display: none; }
+.tag-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.tag-menu-head b { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tag-input { width: 100%; box-sizing: border-box; padding: 5px 7px; border-radius: 6px;
+  border: 1px solid var(--line); background: var(--bg-soft); color: var(--fg); font: inherit; font-size: 12px; }
+.tag-input:focus { outline: 1px dashed var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.tag-menu-list { display: flex; flex-direction: column; gap: 2px; max-height: 210px; overflow: auto; margin-top: 6px; }
+.tag-pick { display: flex; align-items: center; gap: 7px; width: 100%; padding: 4px 6px; border: 0;
+  border-radius: 5px; background: none; color: var(--fg); font: inherit; font-size: 12px;
+  text-align: left; cursor: pointer; }
+.tag-pick:hover, .tag-pick:focus-visible { background: var(--card-2); color: var(--accent); outline: none; }
+.tag-pick[aria-pressed="true"] { color: var(--accent); }
+.tag-pick:disabled { opacity: .45; cursor: not-allowed; }
+.tag-tick { flex: 0 0 12px; font-size: 11px; color: var(--accent); }
+.tag-dot-s { flex: 0 0 7px; width: 7px; height: 7px; border-radius: 50%; }
+.tag-dot { flex: 0 0 14px; width: 14px; height: 14px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 18%, transparent); }
+.tag-menu-hint { margin: 6px 2px 0; font-size: 10.5px; color: var(--muted); }
+.tag-empty { margin: 4px 2px; font-size: 11.5px; color: var(--muted); }
+
+.tag-panel-body { padding: 12px 14px 14px; }
+.tag-create { display: flex; gap: 8px; margin-bottom: 10px; }
+.tag-create .tag-input { flex: 1 1 auto; }
+.tag-rows { display: flex; flex-direction: column; gap: 6px; max-height: 46vh; overflow: auto; }
+.tag-row { display: flex; align-items: center; gap: 7px; }
+.tag-row .tag-input { flex: 1 1 auto; min-width: 0; }
+.tag-row-n { flex: 0 0 auto; font-size: 10.5px; color: var(--muted); white-space: nowrap; }
+.tag-row .btn { flex: 0 0 auto; }
+.btn.danger { border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); color: var(--danger); }
+
 /* Ảnh chụp dùng layout hẹp kiểu mobile: tăng cả chữ phụ để đọc rõ trên điện thoại. */
 .shot-card .post-meta { font-size: 12.5px; }
 .shot-card .badge-new { font-size: 11px; }
@@ -864,6 +958,39 @@ html[data-crt="on"] body::after {
   </div>
 </div>
 
+<div id="tagMenu" class="tag-menu" role="dialog" aria-label="Gắn tag cho kênh" hidden>
+  <div class="tag-menu-head">
+    <b id="tagMenuTitle">Tag</b>
+    <button id="tagMenuClose" class="iconbtn" type="button" title="Đóng" aria-label="Đóng">×</button>
+  </div>
+  <input id="tagMenuInput" class="tag-input" type="text" maxlength="30" list="tagSuggest"
+         autocomplete="off" spellcheck="false" placeholder="Tên tag mới…" aria-label="Tên tag"
+         data-i18n-ph="Tên tag mới…">
+  <datalist id="tagSuggest"></datalist>
+  <div id="tagMenuList" class="tag-menu-list"></div>
+  <p id="tagMenuHint" class="tag-menu-hint"></p>
+</div>
+
+<div id="tagBackdrop" class="theme-backdrop" hidden></div>
+<div id="tagPanel" class="theme-panel tag-panel" hidden role="dialog" aria-modal="true" aria-labelledby="tagPanelTitle">
+  <div class="theme-panel-head">
+    <div>
+      <b id="tagPanelTitle" data-i18n="Quản lý tag">Quản lý tag</b>
+      <small data-i18n="Đổi tên hoặc xoá tag — tag tự gỡ khỏi các kênh, không xoá kênh hay bài viết.">Đổi tên hoặc xoá tag — tag tự gỡ khỏi các kênh, không xoá kênh hay bài viết.</small>
+    </div>
+    <button id="tagPanelClose" class="iconbtn" type="button" title="Đóng" aria-label="Đóng">×</button>
+  </div>
+  <div class="tag-panel-body">
+    <div class="tag-create">
+      <input id="tagNewInput" class="tag-input" type="text" maxlength="30" autocomplete="off"
+             spellcheck="false" placeholder="Tên tag mới…" aria-label="Tên tag" data-i18n-ph="Tên tag mới…">
+      <button id="tagNewBtn" class="btn primary tiny" type="button" data-i18n="Tạo tag">Tạo tag</button>
+    </div>
+    <div id="tagRows" class="tag-rows"></div>
+    <p id="tagPanelMsg" class="form-msg" role="status"></p>
+  </div>
+</div>
+
 <main>
   <section class="panel">
     <form id="chForm" class="addrow" autocomplete="off">
@@ -880,7 +1007,7 @@ html[data-crt="on"] body::after {
     <p id="formMsg" class="form-msg" role="status"></p>
 
     <div class="ch-head">
-      <h2><span class="term-prompt" aria-hidden="true"></span><span data-i18n="Kênh đã lưu">Kênh đã lưu</span></h2>
+      <h2><span class="term-prompt" aria-hidden="true"></span><span data-i18n="Kênh đã lưu">Kênh đã lưu</span><span id="chScope" class="ch-scope" hidden></span></h2>
       <div class="ch-head-actions">
         <button id="btnAll" class="btn tiny" type="button" data-i18n="Chọn tất cả">Chọn tất cả</button>
         <button id="btnNone" class="btn tiny" type="button" data-i18n="Bỏ chọn tất cả">Bỏ chọn tất cả</button>
@@ -973,6 +1100,13 @@ html[data-crt="on"] body::after {
   </div>
   <div id="errLine" class="err-line" hidden></div>
   <div id="fixPanel" class="fix-panel" hidden></div>
+  <section id="tagBar" class="panel tagbar" hidden aria-label="Lọc theo tag">
+    <span class="tagbar-title" aria-hidden="true">#</span>
+    <div id="tagChips" class="tag-chips" role="group" aria-label="Lọc theo tag"></div>
+    <button id="btnTags" class="btn tiny" type="button" aria-haspopup="dialog" aria-controls="tagPanel" aria-expanded="false">
+      <span data-i18n="Quản lý tag">Quản lý tag</span>
+    </button>
+  </section>
   <div id="feed" class="feed"></div>
 </main>
 
@@ -982,6 +1116,15 @@ html[data-crt="on"] body::after {
   <p data-i18n="Ảnh/video chỉ nhúng đường dẫn CDN của Telegram/X (lazy-load) — không tải về máy, không lưu binary vào localStorage.">Ảnh/video chỉ nhúng đường dẫn CDN của Telegram/X (lazy-load) — không tải về máy, không lưu binary vào localStorage.</p>
   <p data-i18n="Tin và bản dịch chỉ nằm trong bộ nhớ của tab hiện tại — không lưu vào localStorage; mở lại sẽ tải mới.">Tin và bản dịch chỉ nằm trong bộ nhớ của tab hiện tại — không lưu vào localStorage; mở lại sẽ tải mới.</p>
 </footer>
+
+<div id="shotMenu" class="shot-menu" role="dialog" aria-labelledby="shotMenuTitle" hidden>
+  <div class="shot-menu-head">
+    <b id="shotMenuTitle" data-i18n="Cỡ ảnh chụp">Cỡ ảnh chụp</b>
+    <span id="shotMenuStatus" class="shot-menu-status" aria-live="polite"></span>
+    <button id="shotMenuClose" class="iconbtn" type="button" title="Đóng" aria-label="Đóng">×</button>
+  </div>
+  <div id="shotMenuList" class="shot-menu-list" role="menu" aria-label="Chọn cỡ ảnh chụp"></div>
+</div>
 
 <div id="lightbox" class="lightbox" hidden role="dialog" aria-modal="true" aria-label="Media">
   <div class="lb-top">
@@ -1013,10 +1156,13 @@ html[data-crt="on"] body::after {
    * 0. Hằng số & tiện ích
    * ===================================================================== */
   const LS = {
-    channels: 'tgnews.channels.v2',
+    channels: 'tgnews.channels.v3',
+    channelsV2: 'tgnews.channels.v2',
     legacyChannels: 'tgnews.channels.v1',
     settings: 'tgnews.settings.v1',
   };
+  /** TTL cache cào tin theo kênh: đổi tag qua lại trong 3 phút không cào lại. */
+  const FETCH_TTL_MS = 3 * 60 * 1000;
   const MAX_POSTS_MEMORY = 400;
   const MAX_TRANSLATIONS_MEMORY = 2000;
   const TRANSLATE_LIMIT_PER_RUN = 50;
@@ -1036,10 +1182,77 @@ html[data-crt="on"] body::after {
     source: 'telegram',
     fontSize: 14,
     frameWidth: 1120,
+    shotSize: '16x9-m',
+    tagFilter: [],
     crt: false,
   };
   const FONT_SIZES = [13, 14, 15, 16, 18, 20];
   const FRAME_WIDTHS = [860, 1120, 1440, 0]; // 0 = toàn màn hình
+
+  /* Ảnh chụp bài viết: 12 tỷ lệ × 3 cỡ (Lớn / Trung bình / Nhỏ).
+   * Mỗi preset là khung cố định W×H, ảnh xuất đúng số pixel đó; phần bài tự co
+   * cho vừa khung nên chữ có thể nhỏ hơn với bài dài. Lớn = 1,5 × Trung bình.
+   */
+  /* SHOT_PRESETS_BEGIN */
+  const SHOT_PAD = 16;
+  // [tỷ lệ, slug, Trung bình [w,h], Nhỏ [w,h]] — đúng bảng đã chốt.
+  const SHOT_RATIOS = [
+    ['16:9', '16x9', [1280, 720], [640, 360]],
+    ['3:2', '3x2', [1200, 800], [600, 400]],
+    ['4:3', '4x3', [1024, 768], [640, 480]],
+    ['1:1', '1x1', [1080, 1080], [540, 540]],
+    ['4:5', '4x5', [864, 1080], [432, 540]],
+    ['5:8', '5x8', [750, 1200], [375, 600]],
+    ['9:16', '9x16', [720, 1280], [360, 640]],
+    ['2:1', '2x1', [1200, 600], [600, 300]],
+    ['1.91:1', '1.91x1', [1200, 630], [600, 315]],
+    ['21:9', '21x9', [1260, 540], [630, 270]],
+    ['3:1', '3x1', [1200, 400], [600, 200]],
+    ['2:3', '2x3', [800, 1200], [400, 600]],
+  ];
+  const SHOT_PRESETS = [];
+  for (const row of SHOT_RATIOS) {
+    const ratio = row[0];
+    const slug = row[1];
+    const mid = row[2];
+    const small = row[3];
+    SHOT_PRESETS.push({ id: slug + '-l', ratio: ratio, name: 'Lớn', w: Math.round(mid[0] * 1.5), h: Math.round(mid[1] * 1.5) });
+    SHOT_PRESETS.push({ id: slug + '-m', ratio: ratio, name: 'Trung bình', w: mid[0], h: mid[1] });
+    SHOT_PRESETS.push({ id: slug + '-s', ratio: ratio, name: 'Nhỏ', w: small[0], h: small[1] });
+  }
+  const SHOT_PRESET_DEFAULT = '16x9-m';
+  function shotPreset(id) {
+    return SHOT_PRESETS.find((p) => p.id === id) ||
+      SHOT_PRESETS.find((p) => p.id === SHOT_PRESET_DEFAULT) || SHOT_PRESETS[0];
+  }
+  /** Nhãn kích thước, ví dụ "1280×720". */
+  function shotPresetPx(preset) {
+    return preset.w + '×' + preset.h;
+  }
+  /** Hệ số phóng để vừa khít khung: ưu tiên đúng W×H, phần dư thành viền nền. */
+  function shotFitScale(cardW, cardH, targetW, targetH) {
+    if (!cardW || !cardH) return 1;
+    return Math.min(targetW / cardW, targetH / cardH);
+  }
+  /**
+   * Chọn chiều rộng layout để card khớp tỷ lệ khung. Tỷ lệ (w + 2pad)/cao(w)
+   * tăng dần khi w tăng (chữ càng rộng càng ít dòng) nên chia đôi là đủ.
+   * measure(w) → chiều cao card; trả w trong [wMin, wMax].
+   */
+  function shotLayoutWidth(measure, targetAspect, wMin, wMax, pad) {
+    const p = pad == null ? SHOT_PAD : pad;
+    const ratioAt = (w) => (w + p * 2) / Math.max(1, measure(w));
+    if (ratioAt(wMax) <= targetAspect) return wMax;   // bài quá dài: rộng nhất vẫn chưa đủ
+    if (ratioAt(wMin) >= targetAspect) return wMin;   // bài quá ngắn: hẹp nhất đã quá rộng
+    let lo = wMin;
+    let hi = wMax;
+    for (let i = 0; i < 7; i++) {
+      const mid = (lo + hi) / 2;
+      if (ratioAt(mid) < targetAspect) lo = mid; else hi = mid;
+    }
+    return Math.round((lo + hi) / 2);
+  }
+  /* SHOT_PRESETS_END */
   const THEMES = [
     { id: 'terminal-dark', name: 'Terminal Green', dark: true, bg: '#050807', card: '#0a1411', fg: '#d7ffe1', accent: '#39ff88' },
     { id: 'terminal-amber', name: 'Terminal Amber', dark: true, bg: '#0f0b05', card: '#1a1206', fg: '#ffe6b8', accent: '#ffb000' },
@@ -1151,7 +1364,36 @@ html[data-crt="on"] body::after {
     'Chọn ít nhất một kênh để cào tin.': 'Select at least one channel.',
     'Kênh này chưa có tin hoặc không công khai.': 'No posts here, or the channel is not public.',
     'Xoá kênh': 'Remove channel',
+    'Lọc theo tag': 'Filter by tag',
+    'Lọc tag: {n}/{total} kênh': 'Tag filter: {n}/{total} channels',
+    'Ngoài tag đang lọc': 'Outside the current tag filter',
+    'Tất cả': 'All',
+    'Quản lý tag': 'Manage tags',
+    'Gắn tag': 'Add tags',
+    'Tag': 'Tags',
+    'Tag của {name}': 'Tags for {name}',
+    'Tên tag': 'Tag name',
+    'Tên tag mới…': 'New tag name…',
+    'Tạo tag': 'Create tag',
+    'Lưu': 'Save',
+    'Xoá': 'Delete',
+    'Chưa có tag nào.': 'No tags yet.',
+    'Chưa có tag nào. Gõ tên để tạo tag đầu tiên.': 'No tags yet. Type a name to create the first one.',
+    '{n}/{max} tag': '{n}/{max} tags',
+    'Kênh đã đủ {max} tag — gỡ bớt trước khi gắn tag mới.': 'This channel already has {max} tags — remove one first.',
+    'Không kênh nào có tag đang chọn. Gắn tag cho kênh để lọc.': 'No channel has the selected tags. Add tags to a channel to filter.',
+    'Bỏ lọc tag': 'Clear tag filter',
+    'Tên tag không hợp lệ.': 'Invalid tag name.',
+    'Đã có tag cùng tên — chọn tên khác.': 'A tag with that name already exists — choose another.',
+    'Đã lưu tên tag.': 'Tag name saved.',
+    'Tag đã tồn tại — dùng lại tag cũ.': 'That tag already exists — reusing it.',
+    'Đã tạo tag.': 'Tag created.',
+    'Gắn tag cho kênh': 'Add tags to channel',
+    'Đổi tên hoặc xoá tag — tag tự gỡ khỏi các kênh, không xoá kênh hay bài viết.': 'Rename or delete tags — they are removed from channels, not the channels or posts.',
+    'Xoá tag "#{name}"? Tag đang gắn cho {n} kênh — sẽ gỡ khỏi các kênh đó, không xoá kênh hay bài viết.': 'Delete tag "#{name}"? It is attached to {n} channel(s) — it will be removed from them; channels and posts stay.',
+    'Xoá tag "#{name}"? Tag này chưa gắn cho kênh nào.': 'Delete tag "#{name}"? It is not attached to any channel.',
     'Đổi màu': 'Change color',
+    'Đổi màu tag': 'Change tag color',
     'Chọn kênh': 'Select channel',
     'Hôm nay': 'Today',
     'Hôm qua': 'Yesterday',
@@ -1199,11 +1441,17 @@ html[data-crt="on"] body::after {
     'Link không hợp lệ. Dùng @username hoặc t.me/username.': 'Invalid link. Use @username or t.me/username.',
     'Không đọc được dữ liệu.': 'Could not read data.',
     'Chụp hình': 'Screenshot',
-    'Chụp hình và sao chép vào clipboard': 'Screenshot and copy to clipboard',
+    'Cỡ ảnh chụp': 'Screenshot size',
+    'Chọn cỡ ảnh chụp': 'Choose screenshot size',
+    'Mở ảnh để sao chép': 'Open the image to copy',
+    'Không chụp được bài này': 'Could not capture this post',
+    'Chụp hình ({size}) và sao chép vào clipboard': 'Screenshot ({size}) and copy to clipboard',
+    'Nhỏ': 'Small',
+    'Trung bình': 'Medium',
+    'Lớn': 'Large',
     'Sao chép ảnh': 'Copy image',
     'Ảnh chụp bài viết': 'Post screenshot',
     'Đã sao chép ảnh bài viết vào clipboard.': 'Post image copied to clipboard.',
-    'Trình duyệt chặn clipboard — bấm Sao chép ảnh hoặc chuột phải vào ảnh.': 'Clipboard is blocked — press Copy image or right-click the image.',
     'Vẫn bị chặn — chuột phải vào ảnh, chọn Sao chép hình ảnh.': 'Still blocked — right-click the image and choose Copy image.',
     'Bấm Sao chép ảnh hoặc chuột phải vào ảnh.': 'Press Copy image or right-click the image.',
     'Chép bài': 'Copy post',
@@ -1284,10 +1532,145 @@ html[data-crt="on"] body::after {
   if (!['telegram', 'twitter'].includes(settings.source)) settings.source = 'telegram';
   if (!FONT_SIZES.includes(Number(settings.fontSize))) settings.fontSize = 14;
   if (!FRAME_WIDTHS.includes(Number(settings.frameWidth))) settings.frameWidth = 1120;
+  if (!SHOT_PRESETS.some((p) => p.id === settings.shotSize)) settings.shotSize = SHOT_PRESET_DEFAULT;
 
+  /* =====================================================================
+   * 2b. Tag: chuẩn hoá tên, gắn/gỡ, phạm vi lọc (thuần dữ liệu, dễ test)
+   * ===================================================================== */
+  /* TAGS_BEGIN */
+  const TAG_MAX_NAME = 30;
+  const TAG_MAX_PER_CHANNEL = 10;
+  // Màu tag dùng chung bộ 10 màu với kênh, nhưng ưu tiên màu chưa ai dùng.
+  const TAG_COLORS = COLORS;
+
+  function nextTagColor(tags) {
+    const used = new Set((tags || []).map((t) => (t && t.color) || '').filter(Boolean));
+    return TAG_COLORS.find((c) => !used.has(c)) || TAG_COLORS[(tags || []).length % TAG_COLORS.length];
+  }
+
+  /** Tên hiển thị: bỏ dấu #, gộp khoảng trắng, cắt còn 30 ký tự. */
+  function tagDisplay(raw) {
+    let s = String(raw == null ? '' : raw).replace(/\s+/g, ' ').trim();
+    s = s.replace(/^#+\s*/, '');
+    if (s.length > TAG_MAX_NAME) s = s.slice(0, TAG_MAX_NAME).trim();
+    return s;
+  }
+
+  /** Khoá so trùng: bỏ #, không phân biệt hoa thường, bỏ dấu tiếng Việt. */
+  function tagKey(raw) {
+    return norm(String(raw == null ? '' : raw).replace(/#/g, ' ')).replace(/\s+/g, ' ').trim();
+  }
+
+  function tagById(tags, id) {
+    return (tags || []).find((t) => t && t.id === id) || null;
+  }
+
+  function tagByKey(tags, key) {
+    return (tags || []).find((t) => t && tagKey(t.name) === key) || null;
+  }
+
+  /** Id tag của kênh: bỏ id lạ/rỗng/trùng, không tin dữ liệu trong localStorage. */
+  function channelTagIds(ch) {
+    const out = [];
+    const list = ch && Array.isArray(ch.tags) ? ch.tags : [];
+    for (const id of list) {
+      if (typeof id === 'string' && id && out.indexOf(id) < 0) out.push(id);
+    }
+    return out;
+  }
+
+  function channelHasTag(ch, id) {
+    return channelTagIds(ch).indexOf(id) >= 0;
+  }
+
+  function tagUsageCount(channels, id) {
+    let n = 0;
+    for (const ch of (channels || [])) if (channelHasTag(ch, id)) n++;
+    return n;
+  }
+
+  /** Kênh có nằm trong phạm vi lọc: đang bật + (không lọc gì, hoặc có ≥1 tag được chọn). */
+  function channelInScope(ch, filterIds) {
+    if (!ch || ch.enabled === false) return false;
+    const ids = Array.isArray(filterIds) ? filterIds : [];
+    if (!ids.length) return true;
+    return channelTagIds(ch).some((id) => ids.indexOf(id) >= 0);
+  }
+
+  function scopeChannelsOf(channels, filterIds) {
+    return (channels || []).filter((ch) => channelInScope(ch, filterIds));
+  }
+
+  /** Bài chỉ thuộc kênh trong phạm vi lọc (giữ nguyên thứ tự đầu vào). */
+  function postsInScope(posts, channels, filterIds) {
+    const scope = new Set(scopeChannelsOf(channels, filterIds).map((c) => c.username));
+    return (posts || []).filter((p) => p && scope.has(p.channel));
+  }
+
+  /** Gắn tag vào kênh; false nếu đã có hoặc kênh đã đủ 10 tag. */
+  function addTagRef(ch, id) {
+    if (!ch || !id) return false;
+    const ids = channelTagIds(ch);
+    if (ids.indexOf(id) >= 0) return false;
+    if (ids.length >= TAG_MAX_PER_CHANNEL) return false;
+    ids.push(id);
+    ch.tags = ids;
+    return true;
+  }
+
+  function removeTagRef(ch, id) {
+    if (!ch) return false;
+    const ids = channelTagIds(ch);
+    const at = ids.indexOf(id);
+    if (at < 0) return false;
+    ids.splice(at, 1);
+    ch.tags = ids;
+    return true;
+  }
+
+  /** Gỡ một tag khỏi mọi kênh (dùng khi xoá tag). Trả số kênh đã gỡ. */
+  function removeTagEverywhere(channels, id) {
+    let n = 0;
+    for (const ch of (channels || [])) if (removeTagRef(ch, id)) n++;
+    return n;
+  }
+
+  /** Bộ lọc còn hiệu lực: bỏ id không tồn tại / trùng / sai kiểu. */
+  function sanitizeTagFilter(ids, tags) {
+    const out = [];
+    for (const id of (Array.isArray(ids) ? ids : [])) {
+      if (typeof id !== 'string' || !id || out.indexOf(id) >= 0) continue;
+      if (!tagById(tags, id)) continue;
+      out.push(id);
+    }
+    return out;
+  }
+
+  /** Tìm tag theo tên đã chuẩn hoá, chưa có thì tạo. Trả {tag, created} hoặc null. */
+  function ensureTag(tags, raw, idFactory) {
+    const name = tagDisplay(raw);
+    const key = tagKey(name);
+    if (!key) return null;
+    const found = tagByKey(tags, key);
+    if (found) return { tag: found, created: false };
+    const tag = {
+      id: idFactory ? idFactory() : ('t' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+      name: name,
+      color: nextTagColor(tags),
+      createdAt: Date.now(),
+    };
+    tags.push(tag);
+    return { tag: tag, created: true };
+  }
+  /* TAGS_END */
+
+  const bootChannels = loadChannels();
   const state = {
     settings: settings,
-    channels: loadChannels(),
+    channels: bootChannels.channels,
+    tags: bootChannels.tags,
+    /** username → thời điểm cào thành công gần nhất (chỉ RAM). */
+    fetchedAt: {},
     posts: [],
     errors: {},
     loading: false,
@@ -1302,6 +1685,8 @@ html[data-crt="on"] body::after {
     nextAt: 0,
     source: '',
   };
+  // Bộ lọc tag đọc từ cài đặt có thể trỏ tới tag đã bị xoá → dọn ngay.
+  state.settings.tagFilter = sanitizeTagFilter(state.settings.tagFilter, state.tags);
 
   /** Bản dịch chỉ giữ trong bộ nhớ tab hiện tại, không ghi localStorage. */
   const trMemo = {};
@@ -1310,14 +1695,44 @@ html[data-crt="on"] body::after {
   /** Cache HTML đã render của từng bài; chỉ dựng lại khi đầu vào thật sự đổi. */
   const postHtmlCache = new Map();
 
+  /**
+   * Đọc kênh + tag từ localStorage. Trả {channels, tags}.
+   * v3 = {v:3, channels:[{…,tags:[id]}], tags:[{id,name,createdAt}]};
+   * v2/v1 chỉ có kênh → tự nâng cấp (tags rỗng) rồi xoá key cũ SAU KHI ghi thành công.
+   */
   function loadChannels() {
     let raw = lsGet(LS.channels, null);
     let needsMigrate = false;
+    let oldKey = '';
+    if (!raw) {
+      raw = lsGet(LS.channelsV2, null);
+      if (raw) { needsMigrate = true; oldKey = LS.channelsV2; }
+    }
     if (!raw) {
       raw = lsGet(LS.legacyChannels, null);
-      needsMigrate = !!raw;
+      if (raw) { needsMigrate = true; oldKey = LS.legacyChannels; }
     }
     const list = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.channels) ? raw.channels : []);
+    const rawTags = raw && Array.isArray(raw.tags) ? raw.tags : [];
+
+    // Tag: id duy nhất, tên chuẩn hoá, khoá không trùng (giữ tag xuất hiện trước).
+    const tags = [];
+    const tagKeys = new Set();
+    for (const t of rawTags) {
+      if (!t || typeof t.id !== 'string' || !t.id) continue;
+      if (tagById(tags, t.id)) continue;
+      const name = tagDisplay(t.name);
+      const key = tagKey(name);
+      if (!key || tagKeys.has(key)) continue;
+      tagKeys.add(key);
+      tags.push({
+        id: t.id,
+        name: name,
+        color: isValidColor(t.color) ? t.color : nextTagColor(tags),
+        createdAt: Number(t.createdAt) || 0,
+      });
+    }
+
     const seen = new Set();
     const out = [];
     for (const c of list) {
@@ -1328,6 +1743,13 @@ html[data-crt="on"] body::after {
       // Username là khoá duy nhất trong app → không cho trùng handle giữa 2 nguồn.
       if (!re.test(username) || seen.has(username)) continue;
       seen.add(username);
+      // Chỉ giữ id tag còn tồn tại, tối đa 10 — không để dữ liệu mồ côi.
+      const ids = [];
+      for (const id of (Array.isArray(c.tags) ? c.tags : [])) {
+        if (ids.length >= TAG_MAX_PER_CHANNEL) break;
+        if (typeof id !== 'string' || !tagById(tags, id) || ids.indexOf(id) >= 0) continue;
+        ids.push(id);
+      }
       out.push({
         type: type,
         username: username,
@@ -1335,6 +1757,7 @@ html[data-crt="on"] body::after {
         color: isValidColor(c.color) ? c.color : COLORS[out.length % COLORS.length],
         enabled: c.enabled !== false,
         addedAt: Number(c.addedAt) || Date.now(),
+        tags: ids,
       });
     }
     // Bảo đảm mỗi kênh một màu khác nhau (dữ liệu cũ có thể trùng).
@@ -1347,15 +1770,15 @@ html[data-crt="on"] body::after {
       usedColors.add(c.color);
     }
     if (needsMigrate && out.length) {
-      if (lsSet(LS.channels, { v: 2, channels: out })) {
-        try { localStorage.removeItem(LS.legacyChannels); } catch (e) { /* ignore */ }
+      if (lsSet(LS.channels, { v: 3, channels: out, tags: tags })) {
+        try { localStorage.removeItem(oldKey); } catch (e) { /* ignore */ }
       }
     }
-    return out;
+    return { channels: out, tags: tags };
   }
 
   function saveChannels() {
-    lsSet(LS.channels, { v: 2, channels: state.channels });
+    lsSet(LS.channels, { v: 3, channels: state.channels, tags: state.tags });
   }
   function saveSettings() {
     state.settings.v = 1;
@@ -1443,7 +1866,7 @@ html[data-crt="on"] body::after {
     if (state.loading) {
       line.textContent = T('Đang tải {a}/{b} kênh…', { a: state.progress.done, b: state.progress.total });
     } else {
-      const active = state.channels.filter((c) => c.enabled).length;
+      const active = scopeChannelsOf(state.channels, state.settings.tagFilter).length;
       const parts = [];
       parts.push(state.lastRefresh
         ? T('Cập nhật lúc {time}', { time: fmtTime(state.lastRefresh) })
@@ -1684,6 +2107,7 @@ html[data-crt="on"] body::after {
       color: pickColor(null),
       enabled: true,
       addedAt: Date.now(),
+      tags: [],
     });
     saveChannels();
     renderChannelList();
@@ -1706,9 +2130,12 @@ html[data-crt="on"] body::after {
     if (!ch) return;
     const label = ch.title || '@' + ch.username;
     if (!window.confirm('Xoá kênh "' + label + '" khỏi danh sách?')) return;
+    // Chỉ xoá kênh: liên kết tag nằm trên kênh nên biến mất theo, tag vẫn còn nguyên.
+    if (tagMenuCtx && tagMenuCtx.username === username) closeTagMenu(false);
     state.channels = state.channels.filter((c) => c.username !== username);
     state.posts = state.posts.filter((p) => p.channel !== username);
     delete state.errors[username];
+    delete state.fetchedAt[username];
     prunePostCache(new Set(state.posts.map((p) => p.key)));
     saveChannels();
     renderAll();
@@ -1716,6 +2143,16 @@ html[data-crt="on"] body::after {
 
   function renderChannelList() {
     const list = $('#chList');
+    const scopeEl = $('#chScope');
+    const filtering = state.settings.tagFilter.length > 0;
+    // Kênh nằm trong phạm vi tag đang lọc (đúng tập sẽ được cào khi bấm Làm mới).
+    const inScope = new Set(scopeChannelsOf(state.channels, state.settings.tagFilter).map((c) => c.username));
+    if (scopeEl) {
+      scopeEl.hidden = !filtering || !state.channels.length;
+      scopeEl.textContent = filtering
+        ? T('Lọc tag: {n}/{total} kênh', { n: inScope.size, total: state.channels.length })
+        : '';
+    }
     if (!state.channels.length) {
       list.innerHTML = '<p class="chips-empty">' + esc(T('Chưa có kênh nào. Thêm một kênh ở trên.')) + '</p>';
       return;
@@ -1730,9 +2167,17 @@ html[data-crt="on"] body::after {
       const title = shortLabel(fullTitle, 24);
       const userLabel = shortLabel(ch.username, 20);
       const isX = channelType(ch) === 'twitter';
+      const tagIds = channelTagIds(ch);
+      const outOfScope = filtering && !inScope.has(ch.username);
+      const tagNames = tagIds.map((id) => {
+        const t = tagById(state.tags, id);
+        return t ? '#' + t.name : '';
+      }).filter(Boolean).join(' ');
       return '' +
-        '<div class="chip ' + (ch.enabled ? 'on' : 'off') + '" data-user="' + esc(ch.username) + '" draggable="true"' +
-        ' title="' + esc(fullTitle + ' · ' + channelNetLabel(ch) + ' · @' + ch.username) + '"' +
+        '<div class="chip ' + (ch.enabled ? 'on' : 'off') + (outOfScope ? ' scope-out' : '') + '"' +
+        ' data-user="' + esc(ch.username) + '" draggable="true"' +
+        ' title="' + esc(fullTitle + ' · ' + channelNetLabel(ch) + ' · @' + ch.username +
+          (outOfScope ? ' · ' + T('Ngoài tag đang lọc') : '')) + '"' +
         ' style="--c:' + esc(color) + ';--tint:' + hexToRgba(color, 0.14) + '">' +
         '<button class="chip-check" type="button" role="checkbox" aria-checked="' + (ch.enabled ? 'true' : 'false') + '"' +
         ' aria-label="' + esc(T('Chọn kênh') + ': ' + fullTitle) + '" title="' + esc(T('Chọn kênh')) + '">' +
@@ -1742,6 +2187,9 @@ html[data-crt="on"] body::after {
         '<span class="chip-text"><b title="' + esc(fullTitle) + '">' + esc(title) + '</b>' +
         '<small title="' + esc('@' + ch.username) + '">@' + esc(userLabel) +
         (count ? ' · ' + esc(T('{n} tin', { n: count })) : '') + '</small></span>' +
+        '<button class="chip-tag' + (tagIds.length ? ' on' : '') + '" type="button" aria-haspopup="dialog" aria-expanded="false"' +
+        ' title="' + esc(tagNames ? T('Tag') + ': ' + tagNames : T('Gắn tag')) + '"' +
+        ' aria-label="' + esc(tagNames ? T('Tag') + ': ' + tagNames : T('Gắn tag')) + '">#' + (tagIds.length || '') + '</button>' +
         '<button class="chip-x" type="button" aria-label="' + esc(T('Xoá kênh')) + '" title="' + esc(T('Xoá kênh')) + '">×</button>' +
         '</div>';
     }).join('');
@@ -1775,6 +2223,321 @@ html[data-crt="on"] body::after {
     renderChannelList();
     renderFeed();
     renderStatus();
+  }
+
+  /* =====================================================================
+   * 4b. Tag: dải lọc trên feed, popover gắn tag cho kênh, panel quản lý
+   * ===================================================================== */
+  function positionPopup(menu, btn) {
+    const r = btn.getBoundingClientRect();
+    const w = menu.offsetWidth;
+    const h = menu.offsetHeight;
+    const gap = 6;
+    const edge = 8;
+    const left = Math.min(Math.max(edge, r.right - w), Math.max(edge, window.innerWidth - w - edge));
+    let top = r.bottom + gap;
+    if (top + h > window.innerHeight - edge) top = Math.max(edge, r.top - h - gap);
+    menu.style.left = Math.round(left) + 'px';
+    menu.style.top = Math.round(top) + 'px';
+  }
+
+  /** Dải chip tag: "Tất cả" + từng tag kèm số kênh đang dùng. */
+  function renderTagBar() {
+    const bar = $('#tagBar');
+    const box = $('#tagChips');
+    if (!bar || !box) return;
+    const filter = state.settings.tagFilter;
+    bar.hidden = !state.tags.length && !filter.length;
+    if (bar.hidden) {
+      box.textContent = '';
+      return;
+    }
+    const parts = [
+      '<button class="tag-chip all' + (filter.length ? '' : ' on') + '" type="button" data-tag="*"' +
+      ' aria-pressed="' + (filter.length ? 'false' : 'true') + '">' + esc(T('Tất cả')) + '</button>',
+    ];
+    for (const t of state.tags) {
+      const on = filter.indexOf(t.id) >= 0;
+      const n = tagUsageCount(state.channels, t.id);
+      const color = isValidColor(t.color) ? t.color : TAG_COLORS[0];
+      parts.push('<button class="tag-chip' + (on ? ' on' : '') + '" type="button" data-tag="' + esc(t.id) + '"' +
+        ' style="--t:' + esc(color) + '"' +
+        ' aria-pressed="' + (on ? 'true' : 'false') + '" title="' + esc(T('{n} kênh', { n: n })) + '">' +
+        '#' + esc(t.name) + ' <span class="tag-n">' + n + '</span></button>');
+    }
+    box.innerHTML = parts.join('');
+  }
+
+  function setTagFilter(ids) {
+    state.settings.tagFilter = sanitizeTagFilter(ids, state.tags);
+    saveSettings();
+    renderAll();
+    // Cào bù kênh trong phạm vi mới còn "cũ"; bấm Làm mới để bỏ qua cache.
+    if (!state.loading) refresh(false);
+  }
+
+  function toggleTagFilter(id) {
+    const cur = Array.isArray(state.settings.tagFilter) ? state.settings.tagFilter.slice() : [];
+    const at = cur.indexOf(id);
+    if (at >= 0) cur.splice(at, 1); else cur.push(id);
+    setTagFilter(cur);
+  }
+
+  /** Cập nhật nhanh badge "#n" trên chip kênh mà không dựng lại cả danh sách. */
+  function syncChipTagBadge(username) {
+    const ch = findChannel(username);
+    if (!ch) return;
+    const ids = channelTagIds(ch);
+    const names = ids.map((id) => {
+      const t = tagById(state.tags, id);
+      return t ? '#' + t.name : '';
+    }).filter(Boolean).join(' ');
+    document.querySelectorAll('#chList .chip').forEach((el) => {
+      if (el.getAttribute('data-user') !== username) return;
+      const btn = el.querySelector('.chip-tag');
+      if (!btn) return;
+      btn.textContent = '#' + (ids.length || '');
+      btn.classList.toggle('on', ids.length > 0);
+      btn.title = names ? T('Tag') + ': ' + names : T('Gắn tag');
+      btn.setAttribute('aria-label', btn.title);
+    });
+  }
+
+  /* -------- Popover gắn/gỡ tag cho một kênh -------- */
+  let tagMenuCtx = null; // { username, btn }
+
+  function renderTagMenu() {
+    if (!tagMenuCtx) return;
+    const ch = findChannel(tagMenuCtx.username);
+    if (!ch) {
+      closeTagMenu(false);
+      return;
+    }
+    const used = channelTagIds(ch).length;
+    const list = $('#tagMenuList');
+    if (!state.tags.length) {
+      list.innerHTML = '<p class="tag-empty">' + esc(T('Chưa có tag nào. Gõ tên để tạo tag đầu tiên.')) + '</p>';
+    } else {
+      list.innerHTML = state.tags.map((t) => {
+        const on = channelHasTag(ch, t.id);
+        const full = !on && used >= TAG_MAX_PER_CHANNEL;
+        const color = isValidColor(t.color) ? t.color : TAG_COLORS[0];
+        return '<button class="tag-pick" type="button" data-id="' + esc(t.id) + '"' +
+          ' aria-pressed="' + (on ? 'true' : 'false') + '"' + (full ? ' disabled' : '') + '>' +
+          '<span class="tag-tick">' + (on ? '✓' : '') + '</span>' +
+          '<span class="tag-dot-s" style="background:' + esc(color) + '" aria-hidden="true"></span>' +
+          '<span>#' + esc(t.name) + '</span></button>';
+      }).join('');
+    }
+    $('#tagMenuHint').textContent = T('{n}/{max} tag', { n: used, max: TAG_MAX_PER_CHANNEL });
+  }
+
+  function openTagMenu(btn, username) {
+    const ch = findChannel(username);
+    if (!ch) return;
+    tagMenuCtx = { username: username, btn: btn };
+    $('#tagMenuTitle').textContent = T('Tag của {name}', { name: '@' + ch.username });
+    $('#tagMenuInput').value = '';
+    $('#tagSuggest').innerHTML = state.tags.map((t) =>
+      '<option value="' + esc(t.name) + '"></option>').join('');
+    renderTagMenu();
+    const menu = $('#tagMenu');
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    positionPopup(menu, btn);
+    $('#tagMenuInput').focus();
+  }
+
+  function closeTagMenu(refocus) {
+    const menu = $('#tagMenu');
+    if (!menu || menu.hidden) return;
+    const ctx = tagMenuCtx;
+    tagMenuCtx = null;
+    menu.hidden = true;
+    if (ctx && ctx.btn) {
+      ctx.btn.setAttribute('aria-expanded', 'false');
+      if (refocus && ctx.btn.isConnected) ctx.btn.focus();
+    }
+  }
+
+  /** Enter trong ô nhập: tạo tag mới (hoặc dùng lại tag cũ) rồi gắn luôn. */
+  function tagMenuSubmit() {
+    if (!tagMenuCtx) return;
+    const ch = findChannel(tagMenuCtx.username);
+    if (!ch) return;
+    const raw = $('#tagMenuInput').value;
+    if (!tagDisplay(raw)) return;
+    const existing = tagByKey(state.tags, tagKey(raw));
+    if (!existing && channelTagIds(ch).length >= TAG_MAX_PER_CHANNEL) {
+      $('#tagMenuHint').textContent = T('Kênh đã đủ {max} tag — gỡ bớt trước khi gắn tag mới.', { max: TAG_MAX_PER_CHANNEL });
+      return;
+    }
+    const res = ensureTag(state.tags, raw);
+    if (!res) return;
+    if (!addTagRef(ch, res.tag.id) && !channelHasTag(ch, res.tag.id)) {
+      $('#tagMenuHint').textContent = T('Kênh đã đủ {max} tag — gỡ bớt trước khi gắn tag mới.', { max: TAG_MAX_PER_CHANNEL });
+      return;
+    }
+    saveChannels();
+    $('#tagMenuInput').value = '';
+    syncChipTagBadge(ch.username);
+    renderTagMenu();
+    renderTagBar();
+    renderFeed();
+    renderStatus();
+  }
+
+  function toggleChannelTag(username, id) {
+    const ch = findChannel(username);
+    if (!ch || !tagById(state.tags, id)) return false;
+    if (channelHasTag(ch, id)) {
+      removeTagRef(ch, id);
+    } else if (!addTagRef(ch, id)) {
+      $('#tagMenuHint').textContent = T('Kênh đã đủ {max} tag — gỡ bớt trước khi gắn tag mới.', { max: TAG_MAX_PER_CHANNEL });
+      return false;
+    }
+    saveChannels();
+    syncChipTagBadge(username);
+    renderTagMenu();
+    renderTagBar();
+    renderFeed();
+    renderStatus();
+    return true;
+  }
+
+  /* -------- Panel quản lý toàn bộ tag -------- */
+  let tagPanelReturnFocus = null;
+
+  function setTagPanelMsg(text, kind) {
+    const el = $('#tagPanelMsg');
+    if (!el) return;
+    el.textContent = text || '';
+    el.className = 'form-msg ' + (kind || '');
+  }
+
+  function renderTagPanel() {
+    const rows = $('#tagRows');
+    if (!rows) return;
+    if (!state.tags.length) {
+      rows.innerHTML = '<p class="tag-empty">' + esc(T('Chưa có tag nào.')) + '</p>';
+      return;
+    }
+    rows.innerHTML = state.tags.map((t) => {
+      const n = tagUsageCount(state.channels, t.id);
+      const color = isValidColor(t.color) ? t.color : TAG_COLORS[0];
+      return '<div class="tag-row" data-id="' + esc(t.id) + '">' +
+        '<button class="tag-dot" type="button" data-act="tag-color" style="background:' + esc(color) + '"' +
+        ' title="' + esc(T('Đổi màu tag')) + '" aria-label="' + esc(T('Đổi màu tag')) + '"></button>' +
+        '<input class="tag-input" type="text" maxlength="30" value="' + esc(t.name) + '"' +
+        ' aria-label="' + esc(T('Tên tag')) + '" data-act="tag-name">' +
+        '<span class="tag-row-n">' + esc(T('{n} kênh', { n: n })) + '</span>' +
+        '<button class="btn tiny" type="button" data-act="tag-save">' + esc(T('Lưu')) + '</button>' +
+        '<button class="btn tiny danger" type="button" data-act="tag-del">' + esc(T('Xoá')) + '</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function openTagPanel() {
+    tagPanelReturnFocus = document.activeElement;
+    closeTagMenu(false);
+    closeThemePanel();
+    closeChTransfer();
+    setTagPanelMsg('', '');
+    renderTagPanel();
+    $('#tagBackdrop').hidden = false;
+    $('#tagPanel').hidden = false;
+    $('#btnTags').setAttribute('aria-expanded', 'true');
+    $('#tagNewInput').value = '';
+    $('#tagNewInput').focus();
+  }
+
+  function closeTagPanel() {
+    if ($('#tagPanel').hidden) return;
+    $('#tagPanel').hidden = true;
+    $('#tagBackdrop').hidden = true;
+    $('#btnTags').setAttribute('aria-expanded', 'false');
+    const back = tagPanelReturnFocus;
+    tagPanelReturnFocus = null;
+    if (back && typeof back.focus === 'function') back.focus();
+  }
+
+  function createTagFromPanel() {
+    const input = $('#tagNewInput');
+    const raw = input.value;
+    if (!tagDisplay(raw)) {
+      setTagPanelMsg(T('Tên tag không hợp lệ.'), 'err');
+      return;
+    }
+    const existed = !!tagByKey(state.tags, tagKey(raw));
+    const res = ensureTag(state.tags, raw);
+    if (!res) return;
+    saveChannels();
+    input.value = '';
+    renderTagBar();
+    renderTagPanel();
+    if (tagMenuCtx) renderTagMenu();
+    setTagPanelMsg(existed ? T('Tag đã tồn tại — dùng lại tag cũ.') : T('Đã tạo tag.'), 'ok');
+  }
+
+  /** Đổi tên tag, giữ nguyên id nên liên kết kênh–tag không đổi. */
+  function renameTag(id, raw) {
+    const t = tagById(state.tags, id);
+    if (!t) return 'missing';
+    const name = tagDisplay(raw);
+    const key = tagKey(name);
+    if (!key) return 'empty';
+    const clash = tagByKey(state.tags, key);
+    if (clash && clash.id !== id) return 'dup';
+    if (name === t.name) return 'ok';
+    t.name = name;
+    saveChannels();
+    renderAll();
+    renderTagPanel();
+    if (tagMenuCtx) renderTagMenu();
+    return 'ok';
+  }
+
+  /** Xoá tag khỏi danh sách + khỏi mọi kênh; không xoá kênh hay bài viết. */
+  function deleteTag(id) {
+    const t = tagById(state.tags, id);
+    if (!t) return false;
+    const n = tagUsageCount(state.channels, id);
+    const msg = n
+      ? T('Xoá tag "#{name}"? Tag đang gắn cho {n} kênh — sẽ gỡ khỏi các kênh đó, không xoá kênh hay bài viết.',
+        { name: t.name, n: n })
+      : T('Xoá tag "#{name}"? Tag này chưa gắn cho kênh nào.', { name: t.name });
+    if (!window.confirm(msg)) return false;
+    removeTagEverywhere(state.channels, id);
+    state.tags = state.tags.filter((x) => x.id !== id);
+    state.settings.tagFilter = state.settings.tagFilter.filter((x) => x !== id);
+    saveChannels();
+    saveSettings();
+    renderAll();
+    renderTagPanel();
+    if (tagMenuCtx) renderTagMenu();
+    return true;
+  }
+
+  function tagRowById(row) {
+    return row ? row.getAttribute('data-id') : '';
+  }
+
+  /** Đổi màu tag: xoay vòng palette, ưu tiên màu chưa dùng giữa các tag. */
+  function cycleTagColor(id) {
+    const t = tagById(state.tags, id);
+    if (!t) return;
+    const used = new Set(state.tags.filter((x) => x.id !== id).map((x) => x.color));
+    const cur = Math.max(0, TAG_COLORS.indexOf(t.color));
+    let next = '';
+    for (let i = 1; i <= TAG_COLORS.length; i++) {
+      const c = TAG_COLORS[(cur + i) % TAG_COLORS.length];
+      if (!used.has(c)) { next = c; break; }
+    }
+    t.color = next || TAG_COLORS[(cur + 1) % TAG_COLORS.length];
+    saveChannels();
+    renderTagBar();
+    renderTagPanel();
+    if (tagMenuCtx) renderTagMenu();
   }
 
   /* =====================================================================
@@ -2574,15 +3337,32 @@ html[data-crt="on"] body::after {
 
   async function refresh(force) {
     if (state.loading) return;
-    const selected = state.channels.filter((c) => c.enabled);
+    // Chỉ cào kênh nằm trong phạm vi đang xem (đang bật + khớp tag đang lọc).
+    const selected = scopeChannelsOf(state.channels, state.settings.tagFilter);
     if (!selected.length) {
+      if (state.settings.tagFilter.length) {
+        // Tag đang chọn chưa gắn cho kênh nào: hiện trạng thái rỗng, không báo lỗi.
+        renderAll();
+        return;
+      }
       toast(T('Chọn ít nhất một kênh để cào tin.'), 'err');
+      return;
+    }
+    // Cache theo kênh: đổi tag qua lại trong vài phút thì không cào lại.
+    // "Làm mới" và auto-refresh truyền force=true để bỏ qua cache.
+    const now = Date.now();
+    const targets = force
+      ? selected
+      : selected.filter((ch) => now - (state.fetchedAt[ch.username] || 0) > FETCH_TTL_MS);
+    if (!targets.length) {
+      renderFeed();
+      renderStatus();
       return;
     }
 
     state.loading = true;
     state.errors = {};
-    state.progress = { done: 0, total: selected.length };
+    state.progress = { done: 0, total: targets.length };
     state.tr = { done: 0, total: 0 };
     const prevKeys = new Set(state.posts.map((p) => p.key));
     const previousCount = state.posts.length;
@@ -2593,7 +3373,7 @@ html[data-crt="on"] body::after {
     const okChannels = new Set();
 
     try {
-      await runPool(selected, 2, async (ch) => {
+      await runPool(targets, 2, async (ch) => {
         try {
           const got = await fetchChannelPosts(ch, Number(state.settings.count) || 20, force);
           if (got.title && got.title !== ch.title) {
@@ -2606,6 +3386,7 @@ html[data-crt="on"] body::after {
             results.push(p);
           }
           okChannels.add(ch.username);
+          state.fetchedAt[ch.username] = Date.now();
         } catch (err) {
           const code = (err && err.message) || 'unknown';
           state.errors[ch.username] = code;
@@ -2861,18 +3642,15 @@ html[data-crt="on"] body::after {
     return trN ? trN.indexOf(q) !== -1 : false;
   }
 
-  function activeUsernameSet() {
-    return new Set(state.channels.filter((c) => c.enabled).map((c) => c.username));
-  }
-
   function visiblePosts() {
-    const active = activeUsernameSet();
     const q = norm(state.query.trim());
-    return state.posts.filter((p) => active.has(p.channel) && matchQuery(p, q));
+    return postsInScope(state.posts, state.channels, state.settings.tagFilter)
+      .filter((p) => matchQuery(p, q));
   }
 
   const mediaRegistry = new Map();
   const lb = { entry: null, idx: 0, returnFocus: null, key: '' };
+  let shotMenuCtx = null; // { btn, key } khi menu chọn cỡ ảnh đang mở
 
   function postMediaItems(p) {
     const items = [];
@@ -2899,13 +3677,6 @@ html[data-crt="on"] body::after {
     if (isNaN(d.getTime())) return '';
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' ' +
       pad2(d.getHours()) + ':' + pad2(d.getMinutes());
-  }
-
-  function txtTz(d) {
-    const mins = -d.getTimezoneOffset();
-    const sign = mins >= 0 ? '+' : '-';
-    const abs = Math.abs(mins);
-    return 'UTC' + sign + pad2(Math.floor(abs / 60)) + ':' + pad2(abs % 60);
   }
 
   function cleanTxt(value) {
@@ -3102,11 +3873,18 @@ html[data-crt="on"] body::after {
       ? '<button class="linkbtn" type="button" data-act="translate" data-key="' + esc(p.key) + '">' + esc(T('Dịch')) + '</button>'
       : '';
 
-    const shotBtn = '<button class="linkbtn shotbtn" type="button" data-act="shot" data-key="' + esc(p.key) + '"' +
-      ' title="' + esc(T('Chụp hình và sao chép vào clipboard')) + '" aria-label="' + esc(T('Chụp hình và sao chép vào clipboard')) + '">' +
+    const shotTitle = T('Chụp hình ({size}) và sao chép vào clipboard', { size: shotSizeText() });
+    const shotBtn = '<span class="shot-group">' +
+      '<button class="linkbtn shotbtn" type="button" data-act="shot" data-key="' + esc(p.key) + '"' +
+      ' title="' + esc(shotTitle) + '" aria-label="' + esc(shotTitle) + '">' +
       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
       '<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.2"/></svg>' +
-      '<span class="btn-label">' + esc(T('Chụp hình')) + '</span></button>';
+      '<span class="btn-label">' + esc(T('Chụp hình')) + '</span></button>' +
+      '<button class="linkbtn shot-more" type="button" data-act="shot-size" data-key="' + esc(p.key) + '"' +
+      ' aria-haspopup="dialog" aria-controls="shotMenu" aria-expanded="false" title="' + esc(T('Chọn cỡ ảnh chụp')) + '"' +
+      ' aria-label="' + esc(T('Chọn cỡ ảnh chụp')) + '">' +
+      '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg>' +
+      '</button></span>';
 
     const copyTextBtn = '<button class="linkbtn copybtn" type="button" data-act="copy-text" data-key="' + esc(p.key) + '"' +
       ' title="' + esc(T('Sao chép nội dung và liên kết bài gốc')) + '" aria-label="' + esc(T('Sao chép nội dung và liên kết bài gốc')) + '">' +
@@ -3178,10 +3956,16 @@ html[data-crt="on"] body::after {
       return '<div class="empty"><span class="big">✈</span>' +
         esc(T('Chưa có kênh nào. Thêm một kênh ở trên.')) + '</div>';
     }
+    if (state.settings.tagFilter.length &&
+        !scopeChannelsOf(state.channels, state.settings.tagFilter).length) {
+      return '<div class="empty"><span class="big">#</span>' +
+        '<p>' + esc(T('Không kênh nào có tag đang chọn. Gắn tag cho kênh để lọc.')) + '</p>' +
+        '<button class="btn tiny" type="button" data-act="clear-tags">' + esc(T('Bỏ lọc tag')) + '</button></div>';
+    }
     if (state.query.trim()) {
       return '<div class="empty"><span class="big">🔎</span>' + esc(T('Không có tin khớp từ khoá.')) + '</div>';
     }
-    if (!state.channels.some((c) => c.enabled)) {
+    if (!scopeChannelsOf(state.channels, state.settings.tagFilter).length) {
       return '<div class="empty"><span class="big">☑</span>' + esc(T('Chọn ít nhất một kênh để cào tin.')) + '</div>';
     }
     return '<div class="empty"><span class="big">↻</span>' + esc(T('Chưa cập nhật')) + '</div>';
@@ -3195,7 +3979,7 @@ html[data-crt="on"] body::after {
     let html = '';
 
     if (state.settings.view === 'channels') {
-      const selected = state.channels.filter((c) => c.enabled);
+      const selected = scopeChannelsOf(state.channels, state.settings.tagFilter);
       for (const ch of selected) {
         const posts = visible.filter((p) => p.channel === ch.username);
         // Đang tìm kiếm: bỏ qua nhóm không có bài khớp để hiện đúng
@@ -3340,25 +4124,23 @@ html[data-crt="on"] body::after {
     return foot;
   }
 
-  async function buildPostImage(p) {
+  async function buildPostImage(p, preset) {
     const el = findPostEl(p.key);
     if (!el) throw new Error('post_not_rendered');
 
-    // Ảnh chụp dùng layout riêng kiểu mobile, không theo chiều rộng khung đang xem:
-    // khung hẹp + chữ tối thiểu 19px + xuất 3x để đọc rõ khi mở trên điện thoại.
-    const SHOT_WIDTH = 360;
-    const SHOT_MIN_FONT = 19;
-    // 6x: ảnh rộng ~2352 px (gấp đôi bản 3x), vẫn giữ bố cục mobile và cỡ chữ hiệu dụng.
-    const SHOT_SCALE = 6;
-    const width = SHOT_WIDTH;
-    const shotFont = Math.max(SHOT_MIN_FONT, Number(state.settings.fontSize) || 14);
+    // Khung cố định W×H. Chọn chiều rộng layout sao cho card khớp tỷ lệ khung,
+    // rồi phóng đúng một hệ số để ảnh ra đúng số pixel; phần dư là viền nền theme.
+    const shot = preset || shotPreset(state.settings.shotSize);
+    const targetW = shot.w;
+    const targetH = shot.h;
 
     const clone = el.cloneNode(true);
     clone.classList.add('shot-card');
     // Tắt content-visibility trước khi đọc computed style, nếu không height của
     // clone ngoài màn hình chỉ là contain-intrinsic-size (placeholder).
     clone.style.contentVisibility = 'visible';
-    clone.style.setProperty('--read-size', shotFont + 'px');
+    // Cỡ chữ gốc của card; cả card (kể cả nhãn phụ) được phóng đều một hệ số.
+    clone.style.setProperty('--read-size', '19px');
     // Nút thao tác UI, dòng "Mở bài", badge "Đã dịch từ…" và mục "Bản gốc"
     // không thuộc nội dung ảnh chụp (ảnh chỉ giữ bản đang hiển thị).
     clone.querySelectorAll('[data-act="shot"], [data-act="translate"], .post-foot, .badge-tr, details.orig').forEach((n) => n.remove());
@@ -3366,10 +4148,10 @@ html[data-crt="on"] body::after {
     const bg = cssVar('--bg') || '#0b0f14';
     const fg = cssVar('--fg') || '#e9eff7';
     const muted = cssVar('--muted') || '#94a6ba';
-    const pad = 16;
+    const pad = SHOT_PAD;
     const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'box-sizing:border-box;padding:' + pad + 'px;width:' + (width + pad * 2) +
-      'px;background:' + bg + ';color:' + fg + ';font-family:' + bodyFontFamily() + ';';
+    wrapper.style.cssText = 'box-sizing:border-box;padding:' + pad + 'px;background:' + bg + ';color:' + fg +
+      ';font-family:' + bodyFontFamily() + ';';
     wrapper.appendChild(clone);
     wrapper.appendChild(shotFooter(p, muted));
 
@@ -3380,22 +4162,28 @@ html[data-crt="on"] body::after {
     document.body.appendChild(host);
 
     try {
-      // Lượt 1: chép style nhưng chưa chép width/height, để ảnh data URL kịp load
-      // rồi mới đo kích thước thật (tránh đóng băng width:0px lúc ảnh chưa decode).
-      inlineComputedStyles(clone, false);
-      clone.style.width = width + 'px';
+      // Ảnh CDN → data URL trước khi đo, nếu không chiều cao phụ thuộc lúc ảnh load.
+      await inlineShotImages(clone);
+      await Promise.all(Array.from(clone.querySelectorAll('img')).map((img) =>
+        img.decode ? img.decode().catch(() => {}) : Promise.resolve()));
+
+      // Đo chiều cao theo chiều rộng layout; chia đôi tìm w cho khớp tỷ lệ khung
+      // (chữ càng rộng càng ít dòng nên card càng "thấp" tương đối).
+      const layoutW = shotLayoutWidth((w) => {
+        wrapper.style.width = (w + pad * 2) + 'px';
+        return wrapper.getBoundingClientRect().height;
+      }, targetW / targetH, 220, Math.min(targetW, 1280), pad);
+
+      wrapper.style.width = (layoutW + pad * 2) + 'px';
+      clone.style.width = layoutW + 'px';
       clone.style.margin = '0';
       clone.style.boxSizing = 'border-box';
       clone.style.contentVisibility = 'visible';
 
-      await inlineShotImages(clone);
-      // Chờ ảnh data URL decode xong để đo chiều cao đúng.
-      await Promise.all(Array.from(clone.querySelectorAll('img')).map((img) =>
-        img.decode ? img.decode().catch(() => {}) : Promise.resolve()));
-
-      // Lượt 2: ảnh đã có kích thước → chép nốt width/height của mọi phần tử.
+      // Chốt kích thước: chép computed style (đã có width/height thật) rồi mở lại
+      // chiều cao để không đóng băng giá trị đo tạm.
       inlineComputedStyles(clone, true);
-      clone.style.width = width + 'px';
+      clone.style.width = layoutW + 'px';
       clone.style.margin = '0';
       clone.style.boxSizing = 'border-box';
       clone.style.height = 'auto';
@@ -3403,32 +4191,29 @@ html[data-crt="on"] body::after {
       clone.style.maxHeight = 'none';
       clone.style.contentVisibility = 'visible';
 
-      const w = Math.ceil(wrapper.getBoundingClientRect().width);
-      const h = Math.ceil(wrapper.getBoundingClientRect().height);
-      if (!w || !h) throw new Error('empty_image');
+      const cardW = Math.ceil(wrapper.getBoundingClientRect().width);
+      const cardH = Math.ceil(wrapper.getBoundingClientRect().height);
+      if (!cardW || !cardH) throw new Error('empty_image');
 
       const html = new XMLSerializer().serializeToString(wrapper);
-      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '">' +
-        '<foreignObject x="0" y="0" width="' + w + '" height="' + h + '">' + html +
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + cardW + '" height="' + cardH + '">' +
+        '<foreignObject x="0" y="0" width="' + cardW + '" height="' + cardH + '">' + html +
         '</foreignObject></svg>';
 
       // img-src trong CSP chỉ cho data:, không cho blob: → phải dùng data URL.
       const img = await loadImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg));
 
-      let scale = SHOT_SCALE;
-      const maxSide = 24000;
-      if (Math.max(w, h) * scale > maxSide) scale = maxSide / Math.max(w, h);
-      const maxPixels = 40000000;
-      if (w * h * scale * scale > maxPixels) scale = Math.sqrt(maxPixels / (w * h));
-      if (scale < 0.6) scale = 0.6;
+      // Ảnh ra đúng W×H; card được canh giữa, phần dư lấp bằng màu nền.
+      const k = shotFitScale(cardW, cardH, targetW, targetH);
       const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(w * scale));
-      canvas.height = Math.max(1, Math.round(h * scale));
+      canvas.width = targetW;
+      canvas.height = targetH;
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('no_canvas');
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, (targetW - cardW * k) / 2, (targetH - cardH * k) / 2, cardW * k, cardH * k);
       return canvas;
     } finally {
       host.remove();
@@ -3524,11 +4309,133 @@ html[data-crt="on"] body::after {
     }
   }
 
-  function openShotPreview(p, dataUrl, blob) {
+  /** Nhãn cỡ đang dùng, ví dụ "16:9 – Trung bình · 1280×720". */
+  function shotSizeText(preset) {
+    const shot = preset || shotPreset(state.settings.shotSize);
+    return shot.ratio + ' – ' + T(shot.name) + ' · ' + shotPresetPx(shot);
+  }
+
+  /** Cập nhật title/aria-label của mọi nút chụp theo cỡ đang chọn.
+   *  HTML bài được cache, nên phải sửa tại chỗ sau mỗi lần render. */
+  function applyShotSizeToButtons() {
+    const title = T('Chụp hình ({size}) và sao chép vào clipboard', { size: shotSizeText() });
+    document.querySelectorAll('[data-act="shot"]').forEach((b) => {
+      b.title = title;
+      b.setAttribute('aria-label', title);
+    });
+  }
+
+  /* -------- Menu chọn cỡ ảnh chụp (nút ▾ cạnh "Chụp hình") -------- */
+  function buildShotMenu() {
+    const list = $('#shotMenuList');
+    const cur = shotPreset(state.settings.shotSize);
+    list.textContent = '';
+    let lastRatio = '';
+    SHOT_PRESETS.forEach((preset) => {
+      if (preset.ratio !== lastRatio) {
+        lastRatio = preset.ratio;
+        const head = document.createElement('div');
+        head.className = 'shot-menu-group';
+        head.setAttribute('role', 'presentation');
+        head.textContent = preset.ratio;
+        list.appendChild(head);
+      }
+      const on = preset.id === cur.id;
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'shot-menu-item';
+      item.setAttribute('role', 'menuitemradio');
+      item.setAttribute('aria-checked', on ? 'true' : 'false');
+      item.setAttribute('data-size', preset.id);
+      item.tabIndex = -1;
+      const tick = document.createElement('span');
+      tick.className = 'tick';
+      tick.textContent = on ? '✓' : '';
+      const name = document.createElement('span');
+      name.className = 'sn';
+      name.textContent = preset.ratio + ' – ' + T(preset.name);
+      const px = document.createElement('span');
+      px.className = 'px';
+      px.textContent = shotPresetPx(preset);
+      item.append(tick, name, px);
+      list.appendChild(item);
+    });
+  }
+
+  function positionShotMenu(btn) {
+    const menu = $('#shotMenu');
+    const r = btn.getBoundingClientRect();
+    const w = menu.offsetWidth;
+    const h = menu.offsetHeight;
+    const gap = 6;
+    const edge = 8;
+    const left = Math.min(Math.max(edge, r.right - w), Math.max(edge, window.innerWidth - w - edge));
+    let top = r.bottom + gap;
+    if (top + h > window.innerHeight - edge) top = Math.max(edge, r.top - h - gap);
+    menu.style.left = Math.round(left) + 'px';
+    menu.style.top = Math.round(top) + 'px';
+  }
+
+  /** Dòng trạng thái ngay trong hộp chọn (hộp vẫn mở sau khi chụp). */
+  function shotMenuStatus(text) {
+    const el = $('#shotMenuStatus');
+    if (el) el.textContent = text || '';
+  }
+
+  function openShotMenu(btn) {
+    const menu = $('#shotMenu');
+    shotMenuCtx = { btn: btn, key: btn.getAttribute('data-key') || '' };
+    buildShotMenu();
+    shotMenuStatus('');
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    positionShotMenu(btn);
+    const items = Array.from($('#shotMenuList').querySelectorAll('.shot-menu-item'));
+    const cur = items.find((el) => el.getAttribute('aria-checked') === 'true') || items[0];
+    if (cur) cur.focus();
+  }
+
+  function closeShotMenu(refocus) {
+    const menu = $('#shotMenu');
+    if (!menu || menu.hidden) return;
+    const ctx = shotMenuCtx;
+    shotMenuCtx = null;
+    menu.hidden = true;
+    if (ctx && ctx.btn) {
+      ctx.btn.setAttribute('aria-expanded', 'false');
+      if (refocus && ctx.btn.isConnected) ctx.btn.focus();
+    }
+  }
+
+  function toggleShotMenu(btn) {
+    const open = shotMenuCtx && shotMenuCtx.btn === btn;
+    closeShotMenu(false);
+    if (!open) openShotMenu(btn);
+  }
+
+  /** Chọn cỡ → lưu → chụp ngay. Hộp chọn giữ nguyên để đổi cỡ liên tiếp;
+   *  chỉ đóng bằng nút ×, Esc hoặc bấm ra ngoài (không tự đóng khi cuộn). */
+  function chooseShotSize(btn, id) {
+    const preset = SHOT_PRESETS.find((p) => p.id === id);
+    if (!preset) return;
+    const group = btn.closest('.shot-group');
+    const main = group ? group.querySelector('[data-act="shot"]') : null;
+    const key = (main && main.getAttribute('data-key')) || btn.getAttribute('data-key') || '';
+    state.settings.shotSize = preset.id;
+    saveSettings();
+    applyShotSizeToButtons();
+    buildShotMenu();
+    const chosen = Array.from($('#shotMenuList').querySelectorAll('.shot-menu-item'))
+      .find((el) => el.getAttribute('data-size') === preset.id);
+    if (chosen) chosen.focus();
+    if (main && key) capturePost(key, main);
+  }
+
+  function openShotPreview(p, dataUrl, blob, preset) {
     const key = '__shot__' + p.key;
     mediaRegistry.set(key, {
       items: [{ kind: 'photo', thumb: dataUrl, full: dataUrl }],
-      caption: T('Ảnh chụp bài viết') + ' · ' + (p.channelTitle || '@' + p.channel),
+      caption: T('Ảnh chụp bài viết') + ' · ' + shotSizeText(preset) + ' · ' + (p.channelTitle || '@' + p.channel),
       postUrl: p.url,
       blob: blob,
     });
@@ -3544,18 +4451,22 @@ html[data-crt="on"] body::after {
     try {
       const p = state.posts.find((x) => x.key === key);
       if (!p) throw new Error('post_missing');
-      const canvas = await buildPostImage(p);
+      const preset = shotPreset(state.settings.shotSize);
+      const canvas = await buildPostImage(p, preset);
       const blob = await canvasPngBlob(canvas);
       try {
         await writeBlobToClipboard(blob);
         flashButtonLabel(btn, T('Đã chép'));
+        shotMenuStatus(T('Đã chép') + ' · ' + shotSizeText(preset));
       } catch (e) {
         // Trình duyệt chặn clipboard: mở ảnh để bấm "Sao chép ảnh" hoặc
         // chuột phải → Sao chép hình ảnh. Không tải file về máy.
-        openShotPreview(p, canvas.toDataURL('image/png'), blob);
+        shotMenuStatus(T('Mở ảnh để sao chép'));
+        openShotPreview(p, canvas.toDataURL('image/png'), blob, preset);
       }
     } catch (e) {
       flashButtonLabel(btn, T('Lỗi'));
+      shotMenuStatus(T('Không chụp được bài này'));
       toast(T('Không chụp được bài này — ảnh có thể bị chặn CORS.'), 'err');
     } finally {
       if (btn) {
@@ -3639,8 +4550,10 @@ html[data-crt="on"] body::after {
 
   function renderAll() {
     renderChannelList();
+    renderTagBar();
     renderFeed();
     renderStatus();
+    applyShotSizeToButtons();
   }
 
   /* =====================================================================
@@ -3675,7 +4588,7 @@ html[data-crt="on"] body::after {
           return;
         }
         state.nextAt = Date.now() + Number(state.settings.interval) * 60000;
-        if (!state.loading && state.channels.some((c) => c.enabled)) refresh();
+        if (!state.loading && state.channels.some((c) => c.enabled)) refresh(true);
       }
     }, 1000);
   }
@@ -3712,6 +4625,10 @@ html[data-crt="on"] body::after {
       chTransferClose.setAttribute('aria-label', T('Đóng'));
     }
     $('#chSource').setAttribute('aria-label', T('Nguồn'));
+    const tagBarEl = $('#tagBar');
+    if (tagBarEl) tagBarEl.setAttribute('aria-label', T('Lọc theo tag'));
+    const tagChipsEl = $('#tagChips');
+    if (tagChipsEl) tagChipsEl.setAttribute('aria-label', T('Lọc theo tag'));
     const intervalSel = $('#optInterval');
     if (intervalSel) intervalSel.setAttribute('aria-label', T('Khoảng thời gian tự động làm mới'));
     for (const opt of $('#optView').options) {
@@ -3722,6 +4639,35 @@ html[data-crt="on"] body::after {
     updateThemeBtn();
     renderThemePanel();
     updateRefreshBtn();
+    const shotMenu = $('#shotMenu');
+    if (shotMenu) {
+      // Nhãn từng cỡ được dựng lại mỗi lần mở, nên chỉ cần dịch nhãn menu + nút đóng.
+      const shotMenuList = $('#shotMenuList');
+      if (shotMenuList) shotMenuList.setAttribute('aria-label', T('Chọn cỡ ảnh chụp'));
+      const shotMenuClose = $('#shotMenuClose');
+      if (shotMenuClose) {
+        shotMenuClose.title = T('Đóng');
+        shotMenuClose.setAttribute('aria-label', T('Đóng'));
+      }
+      shotMenuStatus('');
+      closeShotMenu(false);
+    }
+    const tagMenuEl = $('#tagMenu');
+    if (tagMenuEl) {
+      tagMenuEl.setAttribute('aria-label', T('Gắn tag cho kênh'));
+      const tagMenuClose = $('#tagMenuClose');
+      if (tagMenuClose) {
+        tagMenuClose.title = T('Đóng');
+        tagMenuClose.setAttribute('aria-label', T('Đóng'));
+      }
+      const tagPanelClose = $('#tagPanelClose');
+      if (tagPanelClose) {
+        tagPanelClose.title = T('Đóng');
+        tagPanelClose.setAttribute('aria-label', T('Đóng'));
+      }
+      if ($('#tagPanel') && !$('#tagPanel').hidden) renderTagPanel();
+      if (tagMenuCtx) renderTagMenu();
+    }
     renderAll();
     // Cập nhật nhãn đếm ngược theo ngôn ngữ mới nhưng KHÔNG reset bộ đếm.
     if (state.settings.auto && state.nextAt) {
@@ -3814,6 +4760,7 @@ html[data-crt="on"] body::after {
   function openThemePanel() {
     themeReturnFocus = document.activeElement;
     closeChTransfer();
+    closeTagPanel();
     renderThemePanel();
     $('#themeBackdrop').hidden = false;
     $('#themePanel').hidden = false;
@@ -3893,6 +4840,7 @@ html[data-crt="on"] body::after {
       let color = '';
       let enabled = true;
       let addedAt = 0;
+      let itemTags = [];
       if (typeof item === 'string') {
         const raw = item.trim();
         if (/^(?:x|twitter):/i.test(raw)) {
@@ -3911,6 +4859,7 @@ html[data-crt="on"] body::after {
         color = isValidColor(item.color) ? item.color : '';
         enabled = item.enabled !== false;
         addedAt = Number(item.addedAt) || 0;
+        itemTags = Array.isArray(item.tags) ? item.tags.filter((t) => typeof t === 'string') : [];
       } else {
         invalid++;
         continue;
@@ -3918,6 +4867,13 @@ html[data-crt="on"] body::after {
       if (!username) { invalid++; continue; }
       if (seen.has(username)) { skipped++; continue; }
       seen.add(username);
+      // Tag trong chuỗi xuất là tên; tạo mới nếu chưa có, nếu có thì dùng lại.
+      const tagIds = [];
+      for (const rawTag of itemTags) {
+        if (tagIds.length >= TAG_MAX_PER_CHANNEL) break;
+        const res = ensureTag(state.tags, rawTag);
+        if (res && tagIds.indexOf(res.tag.id) < 0) tagIds.push(res.tag.id);
+      }
       incoming.push({
         type: type,
         username: username,
@@ -3925,6 +4881,7 @@ html[data-crt="on"] body::after {
         color: color,
         enabled: enabled,
         addedAt: addedAt || Date.now(),
+        tags: tagIds,
       });
     }
     if (incoming.length) {
@@ -3959,6 +4916,11 @@ html[data-crt="on"] body::after {
         color: isValidColor(ch.color) ? ch.color : '',
         enabled: ch.enabled !== false,
         addedAt: Number(ch.addedAt) || 0,
+        // Tag đi kèm để chuyển máy không mất phân loại; nhập lại sẽ tạo/dùng tag cùng tên.
+        tags: channelTagIds(ch).map((id) => {
+          const t = tagById(state.tags, id);
+          return t ? t.name : '';
+        }).filter(Boolean),
       })),
     };
     const value = 'TGNEWS1:' + b64urlEncode(JSON.stringify(payload));
@@ -3996,6 +4958,7 @@ html[data-crt="on"] body::after {
   function openChTransfer() {
     chTransferReturnFocus = document.activeElement;
     closeThemePanel();
+    closeTagPanel();
     setChTransferMsg('', '');
     $('#chTransferBackdrop').hidden = false;
     $('#chTransferPanel').hidden = false;
@@ -4074,6 +5037,11 @@ html[data-crt="on"] body::after {
       const ch = findChannel(user);
       if (!ch) return;
 
+      if (ev.target.closest('.chip-tag')) {
+        ev.preventDefault();
+        openTagMenu(ev.target.closest('.chip-tag'), user);
+        return;
+      }
       if (ev.target.closest('.chip-x')) {
         removeChannel(user);
         return;
@@ -4291,7 +5259,97 @@ html[data-crt="on"] body::after {
       }
     });
 
+    /* -------- Tag: dải lọc + popover gắn tag + panel quản lý -------- */
+    $('#tagChips').addEventListener('click', (ev) => {
+      const chip = ev.target.closest('.tag-chip');
+      if (!chip) return;
+      ev.preventDefault();
+      // Bọc lỗi để một sự cố JS không biến nút thành "không hoạt động" im lặng.
+      try {
+        const id = chip.getAttribute('data-tag');
+        if (id === '*') setTagFilter([]);
+        else toggleTagFilter(id);
+      } catch (err) {
+        toast(T('Không lọc được theo tag:') + ' ' + ((err && err.message) || err), 'err');
+      }
+    });
+
+    $('#tagMenu').addEventListener('click', (ev) => {
+      const pick = ev.target.closest('.tag-pick');
+      if (!pick || !tagMenuCtx) return;
+      ev.preventDefault();
+      toggleChannelTag(tagMenuCtx.username, pick.getAttribute('data-id'));
+    });
+    $('#tagMenuClose').addEventListener('click', () => closeTagMenu(true));
+    $('#tagMenuInput').addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter') return;
+      ev.preventDefault();
+      tagMenuSubmit();
+    });
+
+    $('#btnTags').addEventListener('click', () => {
+      if ($('#tagPanel').hidden) openTagPanel(); else closeTagPanel();
+    });
+    $('#tagPanelClose').addEventListener('click', closeTagPanel);
+    $('#tagBackdrop').addEventListener('click', closeTagPanel);
+    $('#tagNewBtn').addEventListener('click', createTagFromPanel);
+    $('#tagNewInput').addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter') return;
+      ev.preventDefault();
+      createTagFromPanel();
+    });
+    $('#tagRows').addEventListener('click', (ev) => {
+      const row = ev.target.closest('.tag-row');
+      const id = tagRowById(row);
+      if (!row || !id) return;
+      if (ev.target.closest('[data-act="tag-color"]')) {
+        cycleTagColor(id);
+        return;
+      }
+      if (ev.target.closest('[data-act="tag-del"]')) {
+        deleteTag(id);
+        return;
+      }
+      if (ev.target.closest('[data-act="tag-save"]')) {
+        const input = row.querySelector('[data-act="tag-name"]');
+        const result = renameTag(id, input ? input.value : '');
+        if (result === 'dup') setTagPanelMsg(T('Đã có tag cùng tên — chọn tên khác.'), 'err');
+        else if (result === 'empty') setTagPanelMsg(T('Tên tag không hợp lệ.'), 'err');
+        else if (result === 'ok') setTagPanelMsg(T('Đã lưu tên tag.'), 'ok');
+      }
+    });
+    $('#tagRows').addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter' || !ev.target.closest('[data-act="tag-name"]')) return;
+      ev.preventDefault();
+      const row = ev.target.closest('.tag-row');
+      const id = tagRowById(row);
+      if (!id) return;
+      const result = renameTag(id, ev.target.value);
+      if (result === 'dup') setTagPanelMsg(T('Đã có tag cùng tên — chọn tên khác.'), 'err');
+      else if (result === 'empty') setTagPanelMsg(T('Tên tag không hợp lệ.'), 'err');
+      else if (result === 'ok') setTagPanelMsg(T('Đã lưu tên tag.'), 'ok');
+    });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && !$('#tagPanel').hidden) {
+        ev.preventDefault();
+        closeTagPanel();
+      }
+    });
+    document.addEventListener('pointerdown', (ev) => {
+      if ($('#tagMenu').hidden) return;
+      if (ev.target.closest('#tagMenu')) return;
+      if (tagMenuCtx && ev.target.closest('.chip-tag')) return;
+      closeTagMenu(false);
+    }, true);
+    // Không đóng popover tag khi cuộn (vị trí fixed), chỉ đóng bằng ×, Esc hoặc bấm ra ngoài.
+    window.addEventListener('resize', () => { closeTagMenu(false); });
+
     $('#feed').addEventListener('click', (ev) => {
+      if (ev.target.closest('[data-act="clear-tags"]')) {
+        ev.preventDefault();
+        setTagFilter([]);
+        return;
+      }
       const mediaEl = ev.target.closest('[data-media-group]');
       if (mediaEl) {
         if (ev.metaKey || ev.ctrlKey || ev.shiftKey) return;
@@ -4308,9 +5366,16 @@ html[data-crt="on"] body::after {
         copyPostText(copyBtn.getAttribute('data-key'), copyBtn);
         return;
       }
+      const sizeBtn = ev.target.closest('[data-act="shot-size"]');
+      if (sizeBtn) {
+        ev.preventDefault();
+        toggleShotMenu(sizeBtn);
+        return;
+      }
       const shotBtn = ev.target.closest('[data-act="shot"]');
       if (shotBtn) {
         ev.preventDefault();
+        closeShotMenu(false);
         capturePost(shotBtn.getAttribute('data-key'), shotBtn);
         return;
       }
@@ -4353,6 +5418,45 @@ html[data-crt="on"] body::after {
       else if (ev.key === 'ArrowLeft') { ev.preventDefault(); stepLightbox(-1); }
       else if (ev.key === 'ArrowRight') { ev.preventDefault(); stepLightbox(1); }
     });
+
+    // Hộp chọn cỡ ảnh chụp: cố định, không tự đóng khi cuộn; chỉ đóng bằng ×, Esc
+    // hoặc bấm ra ngoài. Chọn cỡ thì giữ hộp mở để đổi cỡ liên tiếp.
+    const shotMenu = $('#shotMenu');
+    shotMenu.addEventListener('click', (ev) => {
+      const item = ev.target.closest('.shot-menu-item');
+      const ctx = shotMenuCtx;
+      if (!item || !ctx) return;
+      ev.preventDefault();
+      chooseShotSize(ctx.btn, item.getAttribute('data-size'));
+    });
+    $('#shotMenuClose').addEventListener('click', () => closeShotMenu(true));
+    shotMenu.addEventListener('keydown', (ev) => {
+      const items = Array.from($('#shotMenuList').querySelectorAll('.shot-menu-item'));
+      if (!items.length) return;
+      const at = items.indexOf(document.activeElement);
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        closeShotMenu(true);
+      } else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        const step = ev.key === 'ArrowDown' ? 1 : -1;
+        const next = at < 0 ? (step > 0 ? 0 : items.length - 1) : (at + step + items.length) % items.length;
+        items[next].focus();
+      } else if (ev.key === 'Home' || ev.key === 'End') {
+        ev.preventDefault();
+        items[ev.key === 'Home' ? 0 : items.length - 1].focus();
+      } else if (ev.key === 'Tab') {
+        closeShotMenu(false);
+      }
+    });
+    document.addEventListener('pointerdown', (ev) => {
+      if (shotMenu.hidden) return;
+      if (ev.target.closest('#shotMenu')) return;
+      if (shotMenuCtx && ev.target.closest('[data-act="shot-size"]')) return;
+      closeShotMenu(false);
+    }, true);
+    // Không đóng khi cuộn: hộp là position:fixed nên vẫn đứng yên khi cuộn trang/menu.
+    window.addEventListener('resize', () => { closeShotMenu(false); });
 
     $('#banner').addEventListener('click', (ev) => {
       if (!ev.target.closest('[data-act="dismiss-notice"]')) return;

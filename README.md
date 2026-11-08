@@ -5,7 +5,8 @@ không server, không `npm install`, không tài khoản, không API key, không
 
 Mục lục: [Lỗi 403](#-gặp-lỗi-403-từ-rjinai--chạy-start-pythoncmd-trước-tiên) · [Dùng nhanh](#dùng-nhanh) ·
 [Cấu trúc](#cấu-trúc-thư-mục) · [Nguồn dữ liệu](#nguồn-dữ-liệu--vì-sao-cần-mạng) · [Tính năng](#tính-năng) ·
-[Dữ liệu lưu](#dữ-liệu-lưu-trên-máy) · [Giới hạn](#giới-hạn) · [Bảo mật](#bảo-mật) · [Sự cố](#xử-lý-sự-cố)
+[Dữ liệu lưu](#dữ-liệu-lưu-trên-máy) · [Giới hạn](#giới-hạn) · [Bảo mật](#bảo-mật) · [Kiểm thử](#kiểm-thử) ·
+[Sự cố](#xử-lý-sự-cố)
 
 ## ⚠️ Gặp lỗi 403 từ r.jina.ai → chạy `start-python.cmd` trước tiên
 
@@ -53,7 +54,10 @@ localhost + bấm Làm mới thủ công) → **RSS** (`rss2json` + RSSHub/`tg.i
 5. Chỉnh số tin (10/20/30/50), cỡ chữ (13–20 px), chiều rộng khung, theme, dịch, auto-refresh → **Làm mới**.
 
 Nút **palette** ở góc phải đổi bảng màu terminal + bật/tắt hiệu ứng CRT. Nút **Xuất / nhập** trong
-“Kênh đã lưu” sao lưu/chuyển danh sách kênh bằng một chuỗi `TGNEWS1:…`.
+“Kênh đã lưu” sao lưu/chuyển danh sách kênh + tag bằng một chuỗi `TGNEWS1:…`.
+
+**Tag:** bấm **#** trên chip kênh để gắn/gỡ tag (gõ tên mới rồi `Enter` là tạo luôn). Dải chip phía trên
+feed để lọc theo tag — bấm nhiều chip để chọn nhiều tag, **Tất cả** để bỏ lọc, **Quản lý tag** để đổi tên/xoá.
 
 ## Cấu trúc thư mục
 
@@ -96,10 +100,27 @@ bạn bật dịch. Khi Jina lỗi và proxy local đang chạy, request đi th�
 - **Hai cách xem:** *Theo kênh* (nhóm màu, header dính, đếm tin) hoặc *Dòng thời gian* (trộn kênh);
   phân cách ngày, badge **MỚI**.
 - **Tìm kiếm** không phân biệt dấu, tìm cả bản gốc + bản dịch + tiêu đề link.
+- **Tag & lọc theo tag:** gắn tối đa 10 tag mỗi kênh (tên ≤ 30 ký tự; `#Political`, ` political `,
+  `Political` là một; `Chính trị` khớp `chinh tri`). Dải chip trên feed bấm để lọc nhiều tag, **Tất cả**
+  để bỏ lọc; khi lọc, kênh ngoài tag bị **mờ** và tiêu đề "Kênh đã lưu" hiện badge `Lọc tag: n/tổng kênh`
+  để thấy ngay tập đang dùng. Bấm **#** trên chip kênh để gắn/gỡ; **Quản lý tag** cho đổi tên/xoá (xoá tag
+  báo số kênh, tự gỡ khỏi mọi kênh, không xoá kênh hay bài viết). Lựa chọn lọc được giữ khi mở lại app.
+- **Tag có màu:** mỗi tag một màu trong palette 10 màu (tự gán, tránh trùng giữa các tag); màu hiện ở
+  chấm trên chip lọc và trong popover. Bấm chấm màu ở **Quản lý tag** để đổi màu.
+- **Cào theo phạm vi tag:** chỉ tải kênh thuộc tag đang lọc; cache 3 phút mỗi kênh nên đổi tag qua lại
+  không cào lại — **Làm mới** và auto-refresh luôn bỏ qua cache. Kênh lỗi không làm hỏng feed, vẫn báo
+  kênh nào không tải được.
 - **Dịch tiếng Việt** qua Google Translate (tuỳ chọn), bản dịch cache trong bộ nhớ tab.
 - **Media chỉ nhúng URL:** thumbnail gọn, lưới 2 cột (tối đa 4 ảnh + `+N`), lazy-load thẳng từ CDN;
   **lightbox** với `←`/`→`/`Esc`, zoom 1:1, nút mở bài gốc.
-- **Chụp hình bài viết:** xuất PNG đúng theme + cỡ chữ, sao chép vào clipboard (không tải file).
+- **Chụp hình bài viết, 12 tỷ lệ × 3 cỡ (36 preset):** mỗi preset là khung cố định — **16:9**, **3:2**,
+  **4:3**, **1:1**, **4:5**, **5:8**, **9:16**, **2:1**, **1.91:1**, **21:9**, **3:1**, **2:3** — nhân với
+  ba cỡ **Lớn** (= 1,5 × Trung bình) / **Trung bình** / **Nhỏ**. Hộp chọn **▾** mở dạng **dialog cố định**
+  (`position: fixed`), nhóm theo tỷ lệ, mỗi dòng ghi rõ “16:9 – Trung bình · 1280×720”, dấu ✓ ở preset
+  đang dùng; **không tự đóng khi cuộn hay khi chọn** — chọn xong hộp vẫn mở để đổi cỡ tiếp, đóng bằng
+  nút **×**, `Esc` hoặc bấm ra ngoài. Ảnh ra **đúng số pixel** đó; bài tự co cho vừa khung (bài càng dài
+  chữ càng nhỏ), phần dư lấp bằng màu nền theme. Sao chép vào clipboard, không tải file; lựa chọn được
+  nhớ cho lần sau; dòng trạng thái trong hộp báo “Đã chép · 4:3 – Nhỏ · 640×480”.
 - **Chép bài / Lưu TXT:** chép nội dung + link bài gốc; lưu N tin mới nhất mỗi kênh ra `.txt` (UTF-8, chỉ
   thời gian + nội dung).
 - **4 bảng màu terminal dark:** Terminal Green (mặc định), Amber, Cyan, Blue — cùng một ngôn ngữ terminal
@@ -112,15 +133,20 @@ và trạng thái ẩn banner được lưu vào `localStorage`:
 
 | Key | Nội dung |
 |---|---|
-| `tgnews.channels.v2` | `{v, channels:[{type:'telegram'\|'twitter', username, title, color, enabled, addedAt}]}` |
-| `tgnews.settings.v1` | `{v, count, auto, interval, translate, view, theme, lang, source, fontSize, frameWidth, crt}` |
+| `tgnews.channels.v3` | `{v:3, channels:[{type:'telegram'\|'twitter', username, title, color, enabled, addedAt, tags:[tagId]}], tags:[{id, name, color, createdAt}]}` |
+| `tgnews.settings.v1` | `{v, count, auto, interval, translate, view, theme, lang, source, fontSize, frameWidth, shotSize, tagFilter, crt}` |
 | `tgnews.notice.v1` | đánh dấu đã ẩn banner giới thiệu |
 
 - `fontSize` = 13/14/15/16/18/20 px (mặc định 14); `frameWidth` = 860/1120/1440/0 (0 = toàn màn hình).
+- `shotSize` = preset ảnh chụp dạng `<tỷ lệ>-<cỡ>`: `16x9-m` mặc định (16:9 – Trung bình 1280×720);
+  `-l` Lớn, `-m` Trung bình, `-s` Nhỏ; slug tỷ lệ là `16x9`, `3x2`, `4x3`, `1x1`, `4x5`, `5x8`, `9x16`,
+  `2x1`, `1.91x1`, `21x9`, `3x1`, `2x3`. Giá trị cũ/lạ tự về mặc định.
 - `theme` = `terminal-dark` (Green) / `terminal-amber` / `terminal-cyan` / `classic-dark` (Blue).
   ID cũ (`classic-light`, `terminal-light`, `dracula`, `nord`, `dark`, `light`) được tự migrate.
-- `tgnews.channels.v1` được tự migrate sang v2 rồi xoá; hai key tin/bản dịch cũ (`tgnews.posts.v1`,
-  `tgnews.translations.v1`) bị xoá khi khởi động.
+- `tagFilter` = mảng id tag đang lọc (rỗng = tất cả kênh); id không còn tồn tại tự bị bỏ khi khởi động.
+  Tag lưu `{id, name, color}` — đổi tên chỉ đổi `name`, id và liên kết kênh giữ nguyên.
+- `tgnews.channels.v1`/`v2` được tự migrate sang v3 (kênh cũ nhận `tags: []`) rồi xoá key cũ; hai key
+  tin/bản dịch cũ (`tgnews.posts.v1`, `tgnews.translations.v1`) bị xoá khi khởi động.
 - Xoá toàn bộ dữ liệu: DevTools → Application → Local Storage → xoá các key `tgnews.*`.
 
 ## Giới hạn
@@ -135,6 +161,10 @@ và trạng thái ẩn banner được lưu vào `localStorage`:
 - Video chỉ có thumbnail; bấm vào mở bài gốc. Một số ảnh CDN bị chặn (`ERR_BLOCKED_BY_ORB`) thì ảnh đó
   không hiện, phần còn lại vẫn dùng.
 - Fallback RSS chỉ có tối đa 10 bài, không có lượt xem; proxy local giữ đầy đủ nhất.
+- Ảnh chụp luôn **đúng W×H** của preset (tối đa 2560×1440 ở cỡ Lớn): bài dài được thu nhỏ cho vừa
+  khung nên chữ có thể nhỏ, không bị cắt nội dung; bài ngắn có viền nền theme.
+- Tag: tối đa **30 ký tự**/tên, **10 tag**/kênh; so trùng bỏ dấu tiếng Việt nên `Chính trị` và `Chinh tri`
+  là một. Cache cào **3 phút/kênh** (RAM, mất khi reload); chọn tag không cào lại kênh còn mới.
 
 ## Bảo mật
 
@@ -159,6 +189,20 @@ và trạng thái ẩn banner được lưu vào `localStorage`:
 | Ảnh trống / không tải | Ảnh CDN bị chặn (`ERR_BLOCKED_BY_ORB`) hoặc không trả CORS; ảnh đó bị bỏ, phần còn lại vẫn chạy. |
 | Clipboard bị chặn khi chụp hình | App mở lightbox — bấm **Sao chép ảnh** hoặc chuột phải → *Copy image*. |
 | Cổng 8787 bận | Đóng tiến trình đang giữ cổng (thường là `serve.py` cũ) rồi chạy lại `start-python.cmd`. |
+
+## Kiểm thử
+
+Không cần cài gì (Node ≥ 22 chỉ dùng khi chạy test; app vẫn là 1 file HTML):
+
+```bash
+node tests/shot-presets.test.mjs     # bảng preset + hợp đồng "preset thật sự chạy trong luồng chụp"
+node tests/shot-menu.dom.smoke.mjs   # nạp JS thật với DOM giả: mở menu, chọn cỡ, phím, i18n
+node tests/tags.test.mjs             # chuẩn hoá tên tag, gắn/gỡ, phạm vi lọc, dọn dữ liệu
+node tests/tags.dom.smoke.mjs        # UI tag với DOM giả + boot lại để kiểm tra dữ liệu sau reload
+```
+
+`tests/shot-menu.smoke.mjs` là bản chạy trên Chrome/Edge thật (chụp cả screenshot) — cần môi trường
+cho phép mở trình duyệt.
 
 ## Yêu cầu
 
