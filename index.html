@@ -409,6 +409,33 @@ html[data-style="terminal"] .countdown { border-radius: 3px; }
   border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--line));
   color: var(--danger);
 }
+.err-chip .btn.fix-open {
+  height: 20px; padding: 0 8px; margin-left: 6px; font-size: 11px;
+  border-radius: 999px; vertical-align: 1px;
+}
+
+/* ---------- 403 fix panel ---------- */
+.fix-panel {
+  margin: -2px 0 12px; padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--danger) 38%, var(--line));
+  border-radius: var(--radius); background: var(--card);
+  font-size: 12.5px; color: var(--fg);
+}
+.fix-panel[hidden] { display: none; }
+.fix-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.fix-head b { color: var(--danger); font-size: 12.5px; }
+.fix-head .iconbtn { height: 26px; min-width: 26px; padding: 0 7px; font-size: 14px; line-height: 1; }
+.fix-steps { margin: 0 0 4px; padding-left: 20px; color: var(--muted); }
+.fix-steps li { margin: 3px 0; }
+.fix-steps code { color: var(--fg); background: rgba(0, 0, 0, .22); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.fix-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.fix-state { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.fix-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex: 0 0 7px; }
+.fix-dot.up { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.fix-dot.down { background: var(--danger); }
+.fix-dot.blocked { background: #d9a441; }
+.fix-hint { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); }
+.fix-hint a { color: var(--accent); }
 
 /* ---------- feed ---------- */
 .feed { display: flex; flex-direction: column; gap: 18px; }
@@ -732,6 +759,7 @@ html[data-style="terminal"] .theme-card,
 html[data-style="terminal"] .badge-new,
 html[data-style="terminal"] .badge-tr,
 html[data-style="terminal"] .ch-tag,
+html[data-style="terminal"] .fix-panel,
 html[data-style="terminal"] .err-chip,
 html[data-style="terminal"] .lb-close,
 html[data-style="terminal"] .lb-nav { border-radius: 3px; }
@@ -944,6 +972,7 @@ html[data-crt="on"] body::after {
     <div id="trLine" aria-live="polite"></div>
   </div>
   <div id="errLine" class="err-line" hidden></div>
+  <div id="fixPanel" class="fix-panel" hidden></div>
   <div id="feed" class="feed"></div>
 </main>
 
@@ -1207,6 +1236,25 @@ html[data-crt="on"] body::after {
     'Đã lưu file .txt.': 'Saved the .txt file.',
     'Đã tải file .txt vào thư mục tải mặc định (trình duyệt không hỗ trợ chọn nơi lưu).': 'Downloaded the .txt file to the default downloads folder (this browser cannot choose a location).',
     'Không lưu được file — trình duyệt có thể chặn.': 'Could not save the file — the browser may be blocking it.',
+    'Khắc phục': 'Fix',
+    'r.jina.ai từ chối (403)': 'r.jina.ai refused (403)',
+    'Chạy proxy local (không cần cài lại app):': 'Run the local proxy (no reinstall needed):',
+    'Đợi 1–2 phút rồi bấm Làm mới — Jina giới hạn theo IP, hết hạn nhanh.': 'Wait 1–2 minutes, then press Refresh — Jina limits per IP and lifts quickly.',
+    'Vẫn lỗi? Giảm số kênh bật cùng lúc và tắt tự động làm mới.': 'Still failing? Enable fewer channels and turn off auto-refresh.',
+    'Chép lệnh': 'Copy command',
+    'Tải .cmd': 'Download .cmd',
+    'Đã chép lệnh chạy proxy.': 'Proxy command copied.',
+    'Không chép được — chọn start-python.cmd trong thư mục app và chạy thủ công.': 'Could not copy — run start-python.cmd from the app folder manually.',
+    'chưa chạy': 'not running',
+    'đang chạy': 'running',
+    'đang kiểm tra…': 'checking…',
+    'không kiểm tra được': 'cannot check',
+    'Kiểm tra lại': 'Check again',
+    'Đã thấy proxy local — đang tải lại.': 'Local proxy detected — reloading.',
+    'Trình duyệt chặn http://127.0.0.1 từ trang https. Mở app qua 127.0.0.1:8787 để dùng proxy.': 'The browser blocked http://127.0.0.1 from an https page. Open the app via 127.0.0.1:8787 to use the proxy.',
+    'Mở http://127.0.0.1:8787/': 'Open http://127.0.0.1:8787/',
+    'Chạy file .cmd rồi bấm Kiểm tra lại; app tự tải lại khi thấy proxy.': 'Run the .cmd file, then press Check again; the app reloads once it sees the proxy.',
+    'Windows có thể hỏi SmartScreen — bấm More info → Run anyway.': 'Windows may show SmartScreen — click More info → Run anyway.',
   };
 
   function T(s, vars) {
@@ -1418,11 +1466,20 @@ html[data-crt="on"] body::after {
     if (errs.length) {
       errLine.hidden = false;
       errLine.innerHTML = errs.map(([user, code]) =>
-        '<span class="err-chip">@' + esc(user) + ' · ' + esc(errorText(code)) + '</span>'
+        '<span class="err-chip">@' + esc(user) + ' · ' + esc(errorText(code)) +
+        (isFixableCode(code)
+          ? ' <button class="btn fix-open" type="button" data-act="open-fix">' + esc(T('Khắc phục')) + '</button>'
+          : '') +
+        '</span>'
       ).join('');
     } else {
       errLine.hidden = true;
       errLine.innerHTML = '';
+    }
+
+    if (fixOpen && !state.loading && !hasFixableError()) {
+      fixOpen = false;
+      renderFixPanel();
     }
 
     const saveBtn = $('#btnSaveTxt');
@@ -1437,6 +1494,7 @@ html[data-crt="on"] body::after {
 
     renderSourcePill();
     renderBanner();
+    if (fixOpen) renderFixPanel();
   }
 
   function errorText(code) {
@@ -1458,6 +1516,108 @@ html[data-crt="on"] body::after {
     if (c.indexOf('proxy_http_') === 0) return T('Proxy trả lỗi HTTP {n}.', { n: c.replace('proxy_http_', '') });
     if (c === 'translate_429') return T('Google Translate giới hạn tần suất (429) — thử lại sau.');
     return c || T('Không đọc được dữ liệu.');
+  }
+
+  /* --- Panel "Khắc phục 403" / dò proxy local ----------------------------- */
+  const FIX_HEALTH_URL = 'http://127.0.0.1:8787/api/health';
+  const FIXABLE_CODES = ['proxy_forbidden', 'proxy_rate_limited'];
+  let fixOpen = false;
+  let fixProxy = 'unknown'; // unknown | checking | up | down | blocked
+  let fixAutoRefreshed = false;
+
+  function isFixableCode(code) {
+    return FIXABLE_CODES.indexOf(String(code || '')) !== -1;
+  }
+
+  function hasFixableError() {
+    return Object.keys(state.errors).some((user) => isFixableCode(state.errors[user]));
+  }
+
+  function openFixPanel() {
+    fixOpen = true;
+    fixAutoRefreshed = false;
+    renderFixPanel();
+    checkProxy();
+  }
+
+  function closeFixPanel() {
+    fixOpen = false;
+    renderFixPanel();
+  }
+
+  function renderFixPanel() {
+    const el = $('#fixPanel');
+    if (!el) return;
+    if (!fixOpen) {
+      el.hidden = true;
+      el.innerHTML = '';
+      return;
+    }
+    const text = fixProxy === 'up' ? T('đang chạy')
+      : fixProxy === 'checking' ? T('đang kiểm tra…')
+        : fixProxy === 'blocked' ? T('không kiểm tra được')
+          : T('chưa chạy');
+    const dot = fixProxy === 'up' ? 'up' : fixProxy === 'blocked' ? 'blocked' : fixProxy === 'checking' ? '' : 'down';
+    el.hidden = false;
+    el.innerHTML =
+      '<div class="fix-head"><b>' + esc(T('r.jina.ai từ chối (403)')) + '</b>' +
+      '<button class="iconbtn" type="button" data-act="fix-close" title="' + esc(T('Đóng')) +
+      '" aria-label="' + esc(T('Đóng')) + '">×</button></div>' +
+      '<ol class="fix-steps">' +
+      '<li>' + esc(T('Chạy proxy local (không cần cài lại app):')) + ' <code>start-python.cmd</code></li>' +
+      '<li>' + esc(T('Đợi 1–2 phút rồi bấm Làm mới — Jina giới hạn theo IP, hết hạn nhanh.')) + '</li>' +
+      '<li>' + esc(T('Vẫn lỗi? Giảm số kênh bật cùng lúc và tắt tự động làm mới.')) + '</li>' +
+      '</ol>' +
+      '<div class="fix-row">' +
+      '<button class="btn tiny" type="button" data-act="fix-copy">' + esc(T('Chép lệnh')) + '</button>' +
+      '<a class="btn tiny" href="start-python.cmd" download>' + esc(T('Tải .cmd')) + '</a>' +
+      '<span class="fix-hint">' + esc(T('Windows có thể hỏi SmartScreen — bấm More info → Run anyway.')) + '</span>' +
+      '</div>' +
+      '<div class="fix-row"><span class="fix-state" aria-live="polite"><span class="fix-dot ' + dot + '"></span>' +
+      'Proxy 127.0.0.1:8787 · ' + esc(text) + '</span>' +
+      '<button class="btn tiny" type="button" data-act="fix-check">' + esc(T('Kiểm tra lại')) + '</button></div>' +
+      (fixProxy === 'blocked'
+        ? '<p class="fix-hint">' + esc(T('Trình duyệt chặn http://127.0.0.1 từ trang https. Mở app qua 127.0.0.1:8787 để dùng proxy.')) +
+          ' <a href="http://127.0.0.1:8787/" target="_blank" rel="noopener noreferrer">' + esc(T('Mở http://127.0.0.1:8787/')) + '</a></p>'
+        : '<p class="fix-hint">' + esc(T('Chạy file .cmd rồi bấm Kiểm tra lại; app tự tải lại khi thấy proxy.')) + '</p>');
+  }
+
+  async function checkProxy() {
+    fixProxy = 'checking';
+    renderFixPanel();
+    let result = 'down';
+    try {
+      const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+      const timer = ctrl ? setTimeout(() => ctrl.abort(), 1500) : 0;
+      try {
+        const res = await fetch(FIX_HEALTH_URL, { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined });
+        if (res.ok) {
+          const data = await res.json();
+          result = data && data.ok ? 'up' : 'down';
+        }
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    } catch (err) {
+      const aborted = err && err.name === 'AbortError';
+      // Từ https, trình duyệt có thể chặn http://127.0.0.1 — không phân biệt được với "chưa chạy".
+      result = (!aborted && location.protocol === 'https:') ? 'blocked' : 'down';
+    }
+    fixProxy = result;
+    renderFixPanel();
+    if (result === 'up' && !fixAutoRefreshed && !state.loading && state.channels.some((c) => c.enabled)) {
+      fixAutoRefreshed = true;
+      toast(T('Đã thấy proxy local — đang tải lại.'), 'ok');
+      refresh(true);
+    }
+  }
+
+  function copyProxyCommand() {
+    copyTextToClipboard('start-python.cmd').then(() => {
+      toast(T('Đã chép lệnh chạy proxy.'), 'ok');
+    }).catch(() => {
+      toast(T('Không chép được — chọn start-python.cmd trong thư mục app và chạy thủ công.'), 'err');
+    });
   }
 
   /* =====================================================================
@@ -4067,6 +4227,25 @@ html[data-crt="on"] body::after {
 
     $('#btnRefresh').addEventListener('click', () => refresh(true));
     $('#btnSaveTxt').addEventListener('click', saveAllPostsTxt);
+
+    $('#errLine').addEventListener('click', (ev) => {
+      if (!ev.target.closest('[data-act="open-fix"]')) return;
+      openFixPanel();
+    });
+    $('#fixPanel').addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-act]');
+      if (!btn) return;
+      const act = btn.getAttribute('data-act');
+      if (act === 'fix-copy') copyProxyCommand();
+      else if (act === 'fix-check') checkProxy();
+      else if (act === 'fix-close') closeFixPanel();
+    });
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && fixOpen && $('#themePanel').hidden && $('#chTransferPanel').hidden) {
+        ev.preventDefault();
+        closeFixPanel();
+      }
+    });
 
     $('#btnLang').addEventListener('click', () => {
       state.settings.lang = state.settings.lang === 'vi' ? 'en' : 'vi';

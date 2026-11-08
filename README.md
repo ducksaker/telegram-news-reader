@@ -15,13 +15,19 @@ hay app hỏng.
 
 **Cách xử lý (theo thứ tự):**
 
-1. **Double-click `start-python.cmd`** trong thư mục này. Cần **Python 3.10+** (`python --version` để kiểm tra;
+1. **Trong app:** chip lỗi 403 có nút **Khắc phục** → panel hiện 3 bước, nút **Chép lệnh**, **Tải .cmd**
+   và dòng trạng thái proxy `127.0.0.1:8787`. Khi proxy lên, app tự **Làm mới** một lần.
+   (Web không tự chạy `.cmd` được — trình duyệt không cho trang chạy chương trình trên máy.)
+2. **Double-click `start-python.cmd`** trong thư mục này. Cần **Python 3.10+** (`python --version` để kiểm tra;
    thiếu thì cài từ <https://python.org>).
-2. **Giữ cửa sổ đen đang mở** — đóng cửa sổ là tắt proxy. Cửa sổ in ra:
+3. **Giữ cửa sổ đen đang mở** — đóng cửa sổ là tắt proxy. Cửa sổ in ra:
    `Proxy: http://127.0.0.1:8787/api/tg?ch=<kenh>`.
-3. Quay lại app, bấm **Làm mới**. App tự gọi proxy local khi Jina trả `403`/`429`, không cần cấu hình gì.
-4. Không dùng được `.cmd` (macOS/Linux)? Chạy `python serve.py` trong thư mục này.
-5. Muốn mở app qua proxy: vào <http://127.0.0.1:8787/> (serve.py phục vụ luôn `index.html`).
+4. Quay lại app, bấm **Làm mới** (hoặc **Kiểm tra lại** trong panel). App tự gọi proxy local khi Jina trả
+   `403`/`429`, không cần cấu hình gì.
+5. Không dùng được `.cmd` (macOS/Linux)? Chạy `python serve.py` trong thư mục này.
+6. Muốn mở app qua proxy: vào <http://127.0.0.1:8787/> (serve.py phục vụ luôn `index.html`). Mở qua đây cũng
+   là cách chắc chắn nhất khi app đang chạy từ GitHub Pages (`https`) — trình duyệt có thể chặn gọi tới
+   `http://127.0.0.1` từ trang https, panel sẽ báo "không kiểm tra được" và đưa link này.
 
 **Nếu vẫn 403 sau khi proxy chạy:**
 
@@ -144,7 +150,8 @@ và trạng thái ẩn banner được lưu vào `localStorage`:
 
 | Triệu chứng | Cách xử lý |
 |---|---|
-| `r.jina.ai từ chối (HTTP 403)` | Chạy `start-python.cmd` rồi **Làm mới** (mục đầu tiên). Vẫn lỗi → chờ 1–2 phút, giảm số kênh, đổi mạng. |
+| `r.jina.ai từ chối (HTTP 403)` | Bấm **Khắc phục** trên chip lỗi → **Chép lệnh**/tải `.cmd`, chạy proxy, app tự dò `127.0.0.1:8787`. Hoặc làm tay: chạy `start-python.cmd` rồi **Làm mới** (mục đầu tiên). Vẫn lỗi → chờ 1–2 phút, giảm số kênh, đổi mạng. |
+| Panel báo "không kiểm tra được" | App đang mở từ https (Pages) và trình duyệt chặn `http://127.0.0.1`. Mở app qua <http://127.0.0.1:8787/> hoặc dùng bản `index.html` chạy `file://`. |
 | `429` liên tục | Tắt auto-refresh, giảm số kênh, chờ vài phút (Jina ~20 req/phút). |
 | Không thấy bài mới dù kênh có tin | Jina cache ~1 giờ; bấm **Làm mới** (bỏ qua cache nội bộ và gửi `X-No-Cache`). |
 | “Kênh riêng tư hoặc không tồn tại” | Sai username, hoặc kênh không phải công khai. |
