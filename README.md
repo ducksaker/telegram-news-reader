@@ -1,7 +1,8 @@
 # Telegram & X News Reader
 
 Đọc tin từ **kênh Telegram công khai** và **tài khoản X công khai** trong đúng **một file `index.html`**:
-không server, không `npm install`, không tài khoản, không API key, không build.
+đọc tin không cần server, không `npm install`, không tài khoản, không API key, không build. Riêng **dịch**
+cần proxy local `serve.py` (Python 3.10+) vì Google Translate không cho trình duyệt đọc trực tiếp.
 
 Mục lục: [Lỗi 403](#-gặp-lỗi-403-từ-rjinai--chạy-start-pythoncmd-trước-tiên) · [Dùng nhanh](#dùng-nhanh) ·
 [Cấu trúc](#cấu-trúc-thư-mục) · [Nguồn dữ liệu](#nguồn-dữ-liệu--vì-sao-cần-mạng) · [Tính năng](#tính-năng) ·
@@ -45,6 +46,11 @@ không qua bên thứ ba.
 localhost + bấm Làm mới thủ công) → **RSS** (`rss2json` + RSSHub/`tg.i-c-a.su`, tối đa 10 bài, không có lượt xem)
 → hiện lỗi Jina gốc.
 
+**Dịch cũng cần proxy local:** trình duyệt không đọc được `translate.googleapis.com` (thiếu CORS), nên
+`index.html` gọi `http://127.0.0.1:8787/api/translate`. Proxy thử Google trước; nếu Google trả
+`429`/CAPTCHA thì tự chuyển MyMemory. Không chạy proxy thì phần dịch báo đúng lỗi và hướng dẫn
+chạy `start-python.cmd`; đọc tin vẫn hoạt động bình thường.
+
 ## Dùng nhanh
 
 1. Double-click **`index.html`** (chạy trực tiếp bằng `file://`).
@@ -52,6 +58,7 @@ localhost + bấm Làm mới thủ công) → **RSS** (`rss2json` + RSSHub/`tg.i
 3. Nhập `@channelusername` / `t.me/channelusername` (Telegram) hoặc `@handle` / `x.com/handle` (X) → **Thêm kênh**.
 4. Tick/bỏ tick từng kênh trên chip, hoặc **Chọn tất cả / Bỏ chọn tất cả**.
 5. Chỉnh số tin (10/20/30/50), cỡ chữ (13–20 px), chiều rộng khung, theme, dịch, auto-refresh → **Làm mới**.
+   Muốn dịch: chạy **`start-python.cmd`** trước (proxy local mở cổng 8787), rồi bật **Dịch sang tiếng Việt**.
 
 Nút **palette** ở góc phải đổi bảng màu terminal + bật/tắt hiệu ứng CRT. Nút **Xuất / nhập** trong
 “Kênh đã lưu” sao lưu/chuyển danh sách kênh + tag bằng một chuỗi `TGNEWS1:…`.
@@ -64,7 +71,7 @@ feed để lọc theo tag — bấm nhiều chip để chọn nhiều tag, **T�
 | File | Vai trò |
 |---|---|
 | `index.html` | Toàn bộ app (HTML + CSS + JS trong một file). Đây là thứ duy nhất cần để đọc tin. |
-| `serve.py` | Proxy local fallback khi Jina 403/429 — tuỳ chọn, chỉ cần khi gặp lỗi. |
+| `serve.py` | Proxy local fallback khi Jina 403/429, đồng thời là endpoint dịch `/api/translate` (Google → MyMemory) — tuỳ chọn, cần khi gặp lỗi hoặc muốn dịch. |
 | `start-python.cmd` | Double-click để chạy `serve.py` trên Windows (kiểm tra Python trước khi chạy). |
 | `.gitignore` | Bỏ qua `__pycache__`, file hệ điều hành, log. |
 
@@ -73,6 +80,9 @@ feed để lọc theo tag — bấm nhiều chip để chọn nhiều tag, **T�
 - **Telegram:** `t.me/s/<kênh>` trả HTML nhưng **không có** header CORS, nên trình duyệt không đọc trực tiếp được.
   App dùng **`r.jina.ai`** (proxy công khai) và yêu cầu trả HTML gốc bằng header `x-return-format: html`.
 - **X (Twitter):** dùng **FxTwitter** (`api.fxtwitter.com`) — JSON công khai, `Access-Control-Allow-Origin: *`.
+- **Dịch:** `translate.googleapis.com` **không trả** `Access-Control-Allow-Origin` (thiếu CORS) và hay chặn
+  `429`/CAPTCHA theo IP. Vì vậy app gọi proxy local `127.0.0.1:8787/api/translate`; proxy gọi Google phía
+  server, khi Google lỗi thì fallback **MyMemory** (`langpair=autodetect|vi`, `ACAO: *`).
 
 Đo trên máy này:
 
@@ -80,6 +90,8 @@ feed để lọc theo tag — bấm nhiều chip để chọn nhiều tag, **T�
 |---|---|
 | `r.jina.ai/https://t.me/s/telegram` + `x-return-format: html` | `200`, ~133 KB, CORS `null` (hợp cho `file://`) |
 | `api.fxtwitter.com/2/profile/nasa/statuses` | `200`, `ACAO: *`, 20 tweet/trang, có `cursor.bottom` |
+| `translate.googleapis.com/translate_a/single?client=gtx…` | `429` HTML “unusual traffic”, **không có ACAO** → trình duyệt chặn |
+| `api.mymemory.translated.net/get?q=…&langpair=autodetect%7Cvi` | `200`, `ACAO: *`, tự nhận en/zh-CN/ru; tối đa 500 byte/request |
 | `r.jina.ai/https://x.com/<user>` | chỉ trả login wall — không dùng |
 | allorigins / codetabs / corsproxy / cors.lol / cors.eu.org | `5xx`/`401`/`429` — không dùng |
 
@@ -87,9 +99,14 @@ feed để lọc theo tag — bấm nhiều chip để chọn nhiều tag, **T�
 khi gặp `403`/`429`/5xx. Trang đầu gửi `X-No-Cache: true` để luôn thấy bài mới; các trang cũ `?before=…` dùng
 cache Jina (~1 giờ). FxTwitter không có SLA — cũng thử lại 1 lần.
 
+**Giới hạn dịch:** Google free tier không có SLA và có thể chặn theo IP; MyMemory miễn phí **5.000 ký tự/ngày**
+(ẩn danh), **500 byte/request** nên proxy tự cắt chunk. Proxy cache bản dịch 1 giờ theo nội dung. Khi hết
+hạn mức, app dừng dịch và báo rõ; bài đã dịch vẫn giữ trong RAM.
+
 **Quyền riêng tư:** tên kênh + nội dung bài **công khai** đi qua `r.jina.ai` (Telegram) hoặc
-`api.fxtwitter.com` (X). Ảnh tải trực tiếp từ CDN Telegram/X. Nội dung chỉ gửi sang Google Translate khi
-bạn bật dịch. Khi Jina lỗi và proxy local đang chạy, request đi thẳng tới `t.me`.
+`api.fxtwitter.com` (X). Ảnh tải trực tiếp từ CDN Telegram/X. Khi bật dịch, nội dung bài được gửi tới
+Google qua proxy local; nếu Google chặn, proxy gửi tiếp tới MyMemory (Translated.net). Không có API key
+hay tài khoản nào được lưu. Khi Jina lỗi và proxy local đang chạy, request đi thẳng tới `t.me`.
 
 ## Tính năng
 
@@ -110,7 +127,8 @@ bạn bật dịch. Khi Jina lỗi và proxy local đang chạy, request đi th�
 - **Cào theo phạm vi tag:** chỉ tải kênh thuộc tag đang lọc; cache 3 phút mỗi kênh nên đổi tag qua lại
   không cào lại — **Làm mới** và auto-refresh luôn bỏ qua cache. Kênh lỗi không làm hỏng feed, vẫn báo
   kênh nào không tải được.
-- **Dịch tiếng Việt** qua Google Translate (tuỳ chọn), bản dịch cache trong bộ nhớ tab.
+- **Dịch tiếng Việt** qua proxy local (Google trước, MyMemory dự phòng khi Google 429/CAPTCHA), tuỳ chọn;
+  bản dịch cache trong bộ nhớ tab, badge có tooltip ghi rõ nguồn dịch.
 - **Media chỉ nhúng URL:** thumbnail gọn, lưới 2 cột (tối đa 4 ảnh + `+N`), lazy-load thẳng từ CDN;
   **lightbox** với `←`/`→`/`Esc`, zoom 1:1, nút mở bài gốc.
 - **Chụp hình bài viết, 12 tỷ lệ × 3 cỡ (36 preset):** mỗi preset là khung cố định — **16:9**, **3:2**,
@@ -161,6 +179,9 @@ và trạng thái ẩn banner được lưu vào `localStorage`:
 - Video chỉ có thumbnail; bấm vào mở bài gốc. Một số ảnh CDN bị chặn (`ERR_BLOCKED_BY_ORB`) thì ảnh đó
   không hiện, phần còn lại vẫn dùng.
 - Fallback RSS chỉ có tối đa 10 bài, không có lượt xem; proxy local giữ đầy đủ nhất.
+- Dịch cần **proxy local** (`start-python.cmd`). Google free tier có thể chặn `429`/CAPTCHA theo IP; khi đó
+  proxy dùng MyMemory, tối đa **5.000 ký tự/ngày** ẩn danh và **500 byte/request** (proxy tự cắt chunk).
+  App tự dịch tối đa **50 bài/lần**, cache bản dịch trong RAM; hết hạn mức thì dừng và báo, không tự bắn tiếp.
 - Ảnh chụp luôn **đúng W×H** của preset (tối đa 2560×1440 ở cỡ Lớn): bài dài được thu nhỏ cho vừa
   khung nên chữ có thể nhỏ, không bị cắt nội dung; bài ngắn có viền nền theme.
 - Tag: tối đa **30 ký tự**/tên, **10 tag**/kênh; so trùng bỏ dấu tiếng Việt nên `Chính trị` và `Chinh tri`
@@ -171,7 +192,8 @@ và trạng thái ẩn banner được lưu vào `localStorage`:
 - HTML tin nhắn là dữ liệu không tin cậy: allowlist tag, bỏ mọi attribute, chỉ giữ `href` http(s) +
   `target="_blank" rel="noopener noreferrer"`; ảnh chỉ nhận `https://`.
 - CSP meta: `default-src 'self'`, `connect-src` chỉ `r.jina.ai`, `api.fxtwitter.com`, `api.rss2json.com`,
-  `proxy.corsfix.com`, `translate.googleapis.com`, `http://127.0.0.1:8787`; không script/frame ngoài.
+  `proxy.corsfix.com`, `http://127.0.0.1:8787`; không script/frame ngoài. `translate.googleapis.com` và
+  MyMemory do `serve.py` gọi phía server nên không cần mở trong CSP trình duyệt.
 - Nhập kênh chỉ nhận `type` telegram/twitter, username hợp lệ, màu hex; `title` được escape; tối đa 500 kênh;
   chuỗi chỉ `JSON.parse`, không `eval`.
 - Không có secret hay API key trong file; ảnh chụp chỉ ghi vào clipboard khi bạn bấm nút.
@@ -188,22 +210,32 @@ và trạng thái ẩn banner được lưu vào `localStorage`:
 | Corsfix báo `invalid_origin` | Corsfix chỉ dùng khi mở app qua `localhost`; với `file://` app tự bỏ qua. |
 | Ảnh trống / không tải | Ảnh CDN bị chặn (`ERR_BLOCKED_BY_ORB`) hoặc không trả CORS; ảnh đó bị bỏ, phần còn lại vẫn chạy. |
 | Clipboard bị chặn khi chụp hình | App mở lightbox — bấm **Sao chép ảnh** hoặc chuột phải → *Copy image*. |
+| Dịch báo “proxy dịch chưa chạy” | Chạy **`start-python.cmd`**, giữ cửa sổ đen mở, rồi bấm **Dịch**/ **Làm mới**. Kiểm tra `http://127.0.0.1:8787/api/health` trả `"translate": true`. |
+| Dịch báo Google `429`/CAPTCHA | IP đang bị Google chặn tạm thời; proxy tự chuyển MyMemory. Chờ vài phút, tắt auto-refresh, hoặc đổi mạng/VPN. |
+| Dịch báo MyMemory hết hạn mức | MyMemory miễn phí 5.000 ký tự/ngày; chờ sang ngày mới hoặc dùng Google Translate thủ công. Bài đã dịch vẫn còn trong tab. |
+| Badge ghi “MyMemory” thay vì Google | Bình thường: Google đang chặn nên proxy đã fallback; bản dịch vẫn hợp lệ. |
+| Dịch không chạy khi app mở từ https (Pages) | Trình duyệt chặn `http://127.0.0.1`; mở app qua <http://127.0.0.1:8787/> hoặc chạy `index.html` bằng `file://`. |
 | Cổng 8787 bận | Đóng tiến trình đang giữ cổng (thường là `serve.py` cũ) rồi chạy lại `start-python.cmd`. |
 
 ## Kiểm thử
 
-Không cần cài gì (Node ≥ 22 chỉ dùng khi chạy test; app vẫn là 1 file HTML):
+Chạy test: Node ≥ 22 cho test JS, Python 3.10+ cho test proxy; app vẫn là 1 file HTML.
 
 ```bash
 node tests/shot-presets.test.mjs     # bảng preset + hợp đồng "preset thật sự chạy trong luồng chụp"
 node tests/shot-menu.dom.smoke.mjs   # nạp JS thật với DOM giả: mở menu, chọn cỡ, phím, i18n
 node tests/tags.test.mjs             # chuẩn hoá tên tag, gắn/gỡ, phạm vi lọc, dọn dữ liệu
 node tests/tags.dom.smoke.mjs        # UI tag với DOM giả + boot lại để kiểm tra dữ liệu sau reload
+node tests/translate.test.mjs        # client dịch: gọi proxy, lỗi mạng/https, cache, chunk, tiếng Việt
+python tests/translate_proxy.test.py # serve.py: chunk UTF-8, parse Google/MyMemory, fallback, quota
 ```
 
 `tests/shot-menu.smoke.mjs` là bản chạy trên Chrome/Edge thật (chụp cả screenshot) — cần môi trường
-cho phép mở trình duyệt.
+cho phép mở trình duyệt. Kiểm tra proxy thật (sau khi chạy `serve.py`):
+`http://127.0.0.1:8787/api/translate?q=Hello` phải trả JSON `{"ok":true,...}`.
 
 ## Yêu cầu
 
-Trình duyệt hiện đại (Chrome/Edge/Firefox) — không cần Node.js. Python 3.10+ chỉ cần khi dùng proxy local.
+Trình duyệt hiện đại (Chrome/Edge/Firefox) — không cần Node.js để đọc tin. Python 3.10+ cần cho
+**proxy local** (fallback Jina 403/429 và tính năng dịch); không có Python thì app vẫn đọc tin, chỉ phần
+dịch báo lỗi rõ ràng.
