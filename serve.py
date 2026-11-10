@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Local fallback proxy for Telegram public previews + translation.
 
-Chạy file này khi r.jina.ai trả 403/429, hoặc khi muốn dịch bài. App
-(index.html) gọi http://127.0.0.1:8787/api/tg cho Telegram và
-http://127.0.0.1:8787/api/translate cho dịch.
+Chạy file này khi r.jina.ai trả 403/429, hoặc khi Google Translate public bị
+chặn. App (index.html) gọi Google trực tiếp trước; chỉ khi lỗi mới gọi
+http://127.0.0.1:8787/api/translate (Google → MyMemory).
 
 - Chỉ bind 127.0.0.1 (không lộ ra LAN).
 - /api/tg: chỉ nhận username hợp lệ + before dạng số.
@@ -44,13 +44,13 @@ CSP = (
     "script-src 'self' 'unsafe-inline'; "
     "connect-src 'self' https://r.jina.ai https://api.fxtwitter.com "
     "https://api.rss2json.com https://proxy.corsfix.com "
-    "http://127.0.0.1:8787; "
+    "https://translate.googleapis.com http://127.0.0.1:8787; "
     "base-uri 'none'; form-action 'none'"
 )
 
-# Dịch: trình duyệt không đọc được translate.googleapis.com (thiếu CORS), nên
-# endpoint /api/translate gọi Google phía server. Google hay trả 429/CAPTCHA
-# theo IP; khi đó tự fallback MyMemory (có ACAO *, autodetect, 500 byte/request).
+# Dịch: trình duyệt gọi Google public trực tiếp (CORS * khi 200). Endpoint
+# /api/translate là fallback khi Google bị chặn: gọi Google phía server, lỗi
+# thì MyMemory (có quota 5.000 ký tự/ngày).
 GOOGLE_TRANSLATE_URL = "https://translate.googleapis.com/translate_a/single"
 MYMEMORY_URL = "https://api.mymemory.translated.net/get"
 TRANSLATE_MAX_INPUT = 5000

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Telegram &amp; X News Reader</title>
 <meta name="color-scheme" content="dark">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src https://r.jina.ai https://api.fxtwitter.com https://api.rss2json.com https://proxy.corsfix.com http://127.0.0.1:8787; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src https://r.jina.ai https://api.fxtwitter.com https://api.rss2json.com https://proxy.corsfix.com https://translate.googleapis.com http://127.0.0.1:8787; base-uri 'none'; form-action 'none'">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234ea1ff'/%3E%3Cpath d='M7 16l17-7-4 15-5-4-3 3v-5z' fill='%23fff'/%3E%3C/svg%3E">
 <script>
 /* Áp theme trước khi paint để không nháy màu. */
@@ -1112,10 +1112,10 @@ html[data-crt="on"] body::after {
 
 <footer>
   <p data-i18n="Chỉ đọc kênh Telegram công khai và tài khoản X công khai. Không cần đăng nhập, không dùng bot token.">Chỉ đọc kênh Telegram công khai và tài khoản X công khai. Không cần đăng nhập, không dùng bot token.</p>
-  <p data-i18n="Đọc tin chạy trong 1 file HTML — không cần cài đặt, không cần server. Dịch cần proxy local (start-python.cmd). Dữ liệu công khai tải qua r.jina.ai và api.fxtwitter.com.">Đọc tin chạy trong 1 file HTML — không cần cài đặt, không cần server. Dịch cần proxy local (start-python.cmd). Dữ liệu công khai tải qua r.jina.ai và api.fxtwitter.com.</p>
+  <p data-i18n="Đọc tin chạy trong 1 file HTML — không cần cài đặt, không cần server. Dịch trực tiếp trên trình duyệt bằng Google Translate; nếu Google chặn mới cần proxy local (start-python.cmd). Dữ liệu công khai tải qua r.jina.ai và api.fxtwitter.com.">Đọc tin chạy trong 1 file HTML — không cần cài đặt, không cần server. Dịch trực tiếp trên trình duyệt bằng Google Translate; nếu Google chặn mới cần proxy local (start-python.cmd). Dữ liệu công khai tải qua r.jina.ai và api.fxtwitter.com.</p>
   <p data-i18n="Ảnh/video chỉ nhúng đường dẫn CDN của Telegram/X (lazy-load) — không tải về máy, không lưu binary vào localStorage.">Ảnh/video chỉ nhúng đường dẫn CDN của Telegram/X (lazy-load) — không tải về máy, không lưu binary vào localStorage.</p>
   <p data-i18n="Tin và bản dịch chỉ nằm trong bộ nhớ của tab hiện tại — không lưu vào localStorage; mở lại sẽ tải mới.">Tin và bản dịch chỉ nằm trong bộ nhớ của tab hiện tại — không lưu vào localStorage; mở lại sẽ tải mới.</p>
-  <p data-i18n="Dịch dùng proxy local: Google trước, MyMemory khi Google chặn (429/CAPTCHA). Nội dung bài được gửi tới nhà cung cấp tương ứng.">Dịch dùng proxy local: Google trước, MyMemory khi Google chặn (429/CAPTCHA). Nội dung bài được gửi tới nhà cung cấp tương ứng.</p>
+  <p data-i18n="Dịch trực tiếp trên trình duyệt bằng Google Translate; nếu Google chặn, app chuyển sang proxy local (Google → MyMemory).">Dịch trực tiếp trên trình duyệt bằng Google Translate; nếu Google chặn, app chuyển sang proxy local (Google → MyMemory).</p>
 </footer>
 
 <div id="shotMenu" class="shot-menu" role="dialog" aria-labelledby="shotMenuTitle" hidden>
@@ -1315,7 +1315,7 @@ html[data-crt="on"] body::after {
   const EN = {
     'Đọc tin từ kênh Telegram và X công khai': 'Read news from public Telegram channels and X accounts',
     'Chỉ đọc kênh Telegram công khai và tài khoản X công khai. Không cần đăng nhập, không dùng bot token.': 'Reads public Telegram channels and public X accounts only. No login, no bot token.',
-    'Đọc tin chạy trong 1 file HTML — không cần cài đặt, không cần server. Dịch cần proxy local (start-python.cmd). Dữ liệu công khai tải qua r.jina.ai và api.fxtwitter.com.': 'Reading runs from one HTML file — no install, no server. Translation needs the local proxy (start-python.cmd). Public data is fetched via r.jina.ai and api.fxtwitter.com.',
+    'Đọc tin chạy trong 1 file HTML — không cần cài đặt, không cần server. Dịch trực tiếp trên trình duyệt bằng Google Translate; nếu Google chặn mới cần proxy local (start-python.cmd). Dữ liệu công khai tải qua r.jina.ai và api.fxtwitter.com.': 'Reading runs from one HTML file — no install, no server. Translation runs directly in the browser via Google Translate; the local proxy (start-python.cmd) is only needed if Google blocks it. Public data is fetched via r.jina.ai and api.fxtwitter.com.',
     'Nhập kênh Telegram': 'Enter a Telegram channel',
     'Nhập @channelusername hoặc t.me/channelusername': 'Enter @channelusername or t.me/channelusername',
     'Thêm kênh': 'Add channel',
@@ -1425,10 +1425,12 @@ html[data-crt="on"] body::after {
     'Proxy dịch trả lỗi HTTP {n}.': 'Translation proxy returned HTTP {n}.',
     'Google Translate giới hạn tần suất (429) — thử lại sau.': 'Google Translate is rate limiting (429) — retry later.',
     'Không kết nối được proxy dịch local — chạy start-python.cmd rồi bấm Dịch lại.': 'Cannot reach the local translation proxy — run start-python.cmd, then press Translate again.',
+    'Google Translate bị chặn và proxy chưa chạy — chạy start-python.cmd rồi thử lại.': 'Google Translate is blocked and the proxy is not running — run start-python.cmd and retry.',
+    'Google Translate không dùng được — chạy start-python.cmd để dùng proxy local.': 'Google Translate is unavailable — run start-python.cmd to use the local proxy.',
     'Trình duyệt chặn proxy dịch từ trang https — mở app qua http://127.0.0.1:8787/.': 'The browser blocked the translation proxy on an https page — open the app via http://127.0.0.1:8787/.',
     'Proxy dịch không phản hồi (timeout 30s).': 'The translation proxy did not respond (30s timeout).',
     'Proxy dịch trả dữ liệu không mong đợi.': 'The translation proxy returned unexpected data.',
-    'Google đang chặn dịch (429/CAPTCHA) và MyMemory cũng không dùng được — thử lại sau.': 'Google is blocking translation (429/CAPTCHA) and MyMemory is unavailable too — retry later.',
+    'Google đang chặn dịch (429/CAPTCHA) và proxy không dịch được — thử lại sau.': 'Google is blocking translation (429/CAPTCHA) and the proxy cannot translate either — retry later.',
     'MyMemory đã hết hạn mức 5.000 ký tự/ngày — thử lại sau hoặc dùng Google Translate thủ công.': 'MyMemory reached its 5,000 chars/day free limit — retry later or use Google Translate manually.',
     'MyMemory không dịch được bài này — thử lại sau.': 'MyMemory could not translate this post — retry later.',
     'Bấm để xem lớn': 'Click to enlarge',
@@ -1441,14 +1443,15 @@ html[data-crt="on"] body::after {
     'Nguồn dữ liệu: r.jina.ai (proxy công khai)': 'Data source: r.jina.ai (public proxy)',
     'Không tải được dữ liệu — xem lỗi bên dưới': 'Could not load — see the error below',
     'Đọc tin không cần server — chỉ mở file HTML': 'Reading needs no server — just open the HTML file',
-    'Dịch cần proxy local (start-python.cmd): Google trước, MyMemory khi Google chặn. Không chạy proxy thì phần dịch báo lỗi, đọc tin vẫn bình thường.': 'Translation needs the local proxy (start-python.cmd): Google first, MyMemory when Google blocks. Without the proxy only translation reports an error; reading still works.',
+    'Dịch trực tiếp trên trình duyệt bằng Google Translate; nếu Google chặn mới cần proxy local (start-python.cmd). Không chạy proxy thì phần dịch báo lỗi, đọc tin vẫn bình thường.': 'Translation runs directly in the browser via Google Translate; the local proxy (start-python.cmd) is only needed if Google blocks it. Without the proxy only translation reports an error; reading still works.',
     't.me và x.com không cho trình duyệt đọc trực tiếp (CORS), nên nội dung công khai được tải qua <code>r.jina.ai</code> (Telegram) và <code>FxTwitter</code> (X). Tên kênh và bài viết sẽ đi qua các dịch vụ bên thứ ba này.': "t.me and x.com don't allow direct browser access (CORS), so public content is fetched through <code>r.jina.ai</code> (Telegram) and <code>FxTwitter</code> (X). Channel names and posts pass through these third parties.",
     'Khi r.jina.ai lỗi (403/429), Telegram sẽ được thử qua proxy local (start-python.cmd) rồi đến RSS dự phòng (rss2json + RSSHub/tg.i-c-a.su).': 'When r.jina.ai fails (403/429), Telegram is retried via the local proxy (start-python.cmd) and then the fallback RSS source (rss2json + RSSHub/tg.i-c-a.su).',
     'Đã hiểu': 'Got it',
     'Kênh riêng tư hoặc không tồn tại.': 'Private or non-existent channel.',
-    'Dịch qua proxy local (Google, dự phòng MyMemory).': 'Translated via the local proxy (Google, MyMemory fallback).',
-    'Dịch dùng proxy local: Google trước, MyMemory khi Google chặn (429/CAPTCHA). Nội dung bài được gửi tới nhà cung cấp tương ứng.': 'Translation uses the local proxy: Google first, MyMemory when Google blocks (429/CAPTCHA). Post text goes to the corresponding provider.',
-    'Proxy dịch chưa chạy — chạy start-python.cmd để bật dịch.': 'Translation proxy is not running — run start-python.cmd to enable translation.',
+    'Dịch trực tiếp trên trình duyệt (Google Translate); nếu Google chặn, dùng proxy local.': 'Translation runs directly in the browser (Google Translate); the local proxy is used if Google blocks it.',
+    'Google Translate bị chặn và proxy chưa chạy — chạy start-python.cmd để dịch.': 'Google Translate is blocked and the proxy is not running — run start-python.cmd to translate.',
+    'Dịch trực tiếp trên trình duyệt bằng Google Translate; nếu Google chặn, app chuyển sang proxy local (Google → MyMemory).': 'Translation runs directly in the browser via Google Translate; if Google blocks it, the app falls back to the local proxy (Google → MyMemory).',
+    'Không lọc được theo tag:': 'Could not filter by tag:',
     'Đã bật lại kênh đã lưu.': 'Re-enabled the saved channel.',
     'Đã thêm kênh.': 'Channel added.',
     'Link không hợp lệ. Dùng @username hoặc t.me/username.': 'Invalid link. Use @username or t.me/username.',
@@ -1869,7 +1872,7 @@ html[data-crt="on"] body::after {
       '<b>' + esc(T('Đọc tin không cần server — chỉ mở file HTML')) + '</b>' +
       '<p>' + T('t.me và x.com không cho trình duyệt đọc trực tiếp (CORS), nên nội dung công khai được tải qua <code>r.jina.ai</code> (Telegram) và <code>FxTwitter</code> (X). Tên kênh và bài viết sẽ đi qua các dịch vụ bên thứ ba này.') + '</p>' +
       '<p>' + esc(T('Khi r.jina.ai lỗi (403/429), Telegram sẽ được thử qua proxy local (start-python.cmd) rồi đến RSS dự phòng (rss2json + RSSHub/tg.i-c-a.su).')) + '</p>' +
-      '<p>' + esc(T('Dịch cần proxy local (start-python.cmd): Google trước, MyMemory khi Google chặn. Không chạy proxy thì phần dịch báo lỗi, đọc tin vẫn bình thường.')) + '</p>' +
+      '<p>' + esc(T('Dịch trực tiếp trên trình duyệt bằng Google Translate; nếu Google chặn mới cần proxy local (start-python.cmd). Không chạy proxy thì phần dịch báo lỗi, đọc tin vẫn bình thường.')) + '</p>' +
       '<p><button class="btn tiny" type="button" data-act="dismiss-notice">' + esc(T('Đã hiểu')) + '</button></p>';
   }
 
@@ -1895,8 +1898,8 @@ html[data-crt="on"] body::after {
       trLine.textContent = T('Đang dịch {a}/{b}…', { a: state.tr.done, b: state.tr.total });
     } else if (s.translate) {
       trLine.textContent = state.translateDown
-        ? T('Proxy dịch chưa chạy — chạy start-python.cmd để bật dịch.')
-        : T('Dịch qua proxy local (Google, dự phòng MyMemory).');
+        ? T('Google Translate bị chặn và proxy chưa chạy — chạy start-python.cmd để dịch.')
+        : T('Dịch trực tiếp trên trình duyệt (Google Translate); nếu Google chặn, dùng proxy local.');
     } else {
       trLine.textContent = '';
     }
@@ -1954,11 +1957,13 @@ html[data-crt="on"] body::after {
     if (c === 'x_bad_response') return T('FxTwitter trả dữ liệu không mong đợi.');
     if (c.indexOf('x_http_') === 0) return T('FxTwitter HTTP {n}.', { n: c.replace('x_http_', '') });
     if (c.indexOf('proxy_http_') === 0) return T('Proxy trả lỗi HTTP {n}.', { n: c.replace('proxy_http_', '') });
+    if (c === 'translate_public_blocked') return T('Google Translate bị chặn và proxy chưa chạy — chạy start-python.cmd rồi thử lại.');
     if (c === 'translate_proxy_down') return T('Không kết nối được proxy dịch local — chạy start-python.cmd rồi bấm Dịch lại.');
     if (c === 'translate_proxy_blocked') return T('Trình duyệt chặn proxy dịch từ trang https — mở app qua http://127.0.0.1:8787/.');
     if (c === 'translate_timeout') return T('Proxy dịch không phản hồi (timeout 30s).');
     if (c === 'translate_bad_response') return T('Proxy dịch trả dữ liệu không mong đợi.');
-    if (c === 'google_429' || c === 'google_403') return T('Google đang chặn dịch (429/CAPTCHA) và MyMemory cũng không dùng được — thử lại sau.');
+    if (c === 'google_429' || c === 'google_403') return T('Google đang chặn dịch (429/CAPTCHA) và proxy không dịch được — thử lại sau.');
+    if (c.indexOf('google_') === 0) return T('Google Translate không dùng được — chạy start-python.cmd để dùng proxy local.');
     if (c === 'mymemory_quota') return T('MyMemory đã hết hạn mức 5.000 ký tự/ngày — thử lại sau hoặc dùng Google Translate thủ công.');
     if (c.indexOf('mymemory_') === 0) return T('MyMemory không dịch được bài này — thử lại sau.');
     if (c.indexOf('translate_http_') === 0) return T('Proxy dịch trả lỗi HTTP {n}.', { n: c.replace('translate_http_', '') });
@@ -3464,12 +3469,50 @@ html[data-crt="on"] body::after {
   }
 
   /* =====================================================================
-   * 7. Translation qua proxy local (Google, dự phòng MyMemory)
+   * 7. Translation: Google public trực tiếp trên trình duyệt, proxy dự phòng
    * ===================================================================== */
   /* TRANSLATE_CORE_BEGIN */
+  const GOOGLE_TRANSLATE_URL = 'https://translate.googleapis.com/translate_a/single';
   const TRANSLATE_PROXY_URL = 'http://127.0.0.1:8787/api/translate';
+  /** Sau một lần Google lỗi, tạm bỏ qua Google 60s để không bắn 50 request lỗi. */
+  let googleRetryAt = 0;
 
-  async function requestTranslate(text) {
+  function parseGoogle(data) {
+    if (!Array.isArray(data) || !data.length) throw new Error('google_bad_response');
+    const segments = Array.isArray(data[0]) ? data[0] : [];
+    const t = segments
+      .map((seg) => (Array.isArray(seg) && seg[0]) ? String(seg[0]) : '')
+      .join('');
+    const lang = String(data[2] || '');
+    if (!t && lang !== 'vi') throw new Error('google_empty');
+    return { t: t, lang: lang, provider: 'google' };
+  }
+
+  async function requestGoogle(text) {
+    const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), 20000) : 0;
+    let res;
+    try {
+      res = await fetch(
+        GOOGLE_TRANSLATE_URL + '?client=gtx&sl=auto&tl=vi&dt=t&q=' + encodeURIComponent(text),
+        { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined }
+      );
+    } catch (e) {
+      if (timer) clearTimeout(timer);
+      if (e && e.name === 'AbortError') throw new Error('google_timeout');
+      throw new Error('google_blocked');
+    }
+    if (timer) clearTimeout(timer);
+    if (!res.ok) {
+      if (res.status === 429) throw new Error('google_429');
+      throw new Error('google_http_' + res.status);
+    }
+    let data = null;
+    try { data = await res.json(); } catch (e) { data = null; }
+    return parseGoogle(data);
+  }
+
+  async function requestProxy(text) {
     const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = ctrl ? setTimeout(() => ctrl.abort(), 30000) : 0;
     let res;
@@ -3499,6 +3542,25 @@ html[data-crt="on"] body::after {
       lang: String(data.lang || ''),
       provider: String(data.provider || 'proxy'),
     };
+  }
+
+  async function requestTranslate(text) {
+    if (Date.now() >= googleRetryAt) {
+      try {
+        return await requestGoogle(text);
+      } catch (e) {
+        // Google public bị chặn/429/CORS: tạm bỏ qua rồi chuyển proxy local.
+        googleRetryAt = Date.now() + 60000;
+      }
+    }
+    try {
+      return await requestProxy(text);
+    } catch (e) {
+      const code = String((e && e.message) || 'translate');
+      if (code === 'translate_proxy_blocked') throw new Error('translate_proxy_blocked');
+      if (code === 'translate_proxy_down') throw new Error('translate_public_blocked');
+      throw e;
+    }
   }
 
   function splitChunks(text, max) {
@@ -3624,10 +3686,11 @@ html[data-crt="on"] body::after {
       } catch (e) {
         fails++;
         lastErr = String((e && e.message) || 'translate');
-        if (lastErr === 'translate_proxy_down') state.translateDown = true;
+        if (lastErr === 'translate_proxy_down' || lastErr === 'translate_public_blocked') state.translateDown = true;
         // Lỗi cấu hình/quota thì dừng ngay, không bắn 50 request vô ích.
         if (fails >= 4 || lastErr === 'translate_proxy_down' || lastErr === 'translate_proxy_blocked' ||
-            lastErr === 'mymemory_quota' || lastErr === 'translate_429' || lastErr === 'google_429') {
+            lastErr === 'translate_public_blocked' || lastErr === 'mymemory_quota' ||
+            lastErr === 'translate_429' || lastErr === 'google_429') {
           fatal = true;
         }
       } finally {
@@ -3653,7 +3716,7 @@ html[data-crt="on"] body::after {
         p.tr = r;
       } catch (e) {
         const code = String((e && e.message) || 'translate');
-        if (code === 'translate_proxy_down') state.translateDown = true;
+        if (code === 'translate_proxy_down' || code === 'translate_public_blocked') state.translateDown = true;
         toast(errorText(code), 'err');
         renderStatus();
         return;
